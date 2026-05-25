@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard แสดงผลวิเคราะห์ของกระบวนการผลิตน้ำตาล</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--tr:0.4s cubic-bezier(0.4,0,0.2,1)}
+[data-theme="dark"]{
+  --bg:#060810;--bg2:rgba(20,26,44,0.7);--bg3:rgba(14,18,32,0.8);
+  --brd:rgba(90,110,170,0.08);--brd2:rgba(90,130,255,0.18);
+  --t1:#eef0f8;--t2:#8892b0;--t3:#4a5578;
+  --blue:#4f8fff;--green:#34d399;--amber:#fbbf24;--purple:#a78bfa;
+  --pink:#f472b6;--cyan:#22d3ee;--red:#f87171;--teal:#2dd4bf;
+  --glow:rgba(79,143,255,0.1);--glow2:rgba(79,143,255,0.04);
+  --chart-grid:rgba(148,163,184,0.04);
+  --shadow:0 4px 20px rgba(0,0,0,0.25);--shadow2:0 16px 56px rgba(0,0,0,0.35);
+  --hero:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(79,143,255,0.06) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 85% 100%,rgba(139,92,246,0.04) 0%,transparent 45%);
+  --input-bg:rgba(20,26,44,0.9);--input-brd:rgba(90,130,255,0.25);
+}
+[data-theme="light"]{
+  --bg:#f3f5fa;--bg2:rgba(255,255,255,0.82);--bg3:rgba(255,255,255,0.8);
+  --brd:rgba(0,0,0,0.055);--brd2:rgba(60,110,240,0.16);
+  --t1:#161a2e;--t2:#556080;--t3:#98a3bc;
+  --blue:#3672e8;--green:#059669;--amber:#d97706;--purple:#7c3aed;
+  --pink:#db2777;--cyan:#0891b2;--red:#dc2626;--teal:#0d9488;
+  --glow:rgba(54,114,232,0.07);--glow2:rgba(54,114,232,0.03);
+  --chart-grid:rgba(0,0,0,0.035);
+  --shadow:0 1px 8px rgba(0,0,0,0.04);--shadow2:0 8px 28px rgba(0,0,0,0.07);
+  --hero:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(54,114,232,0.04) 0%,transparent 55%);
+  --input-bg:#fff;--input-brd:rgba(60,110,240,0.2);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;transition:background var(--tr),color var(--tr)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:var(--hero);transition:background var(--tr)}
+.W{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:20px 26px 50px}
+.TG{position:fixed;top:20px;right:24px;z-index:200;display:flex;align-items:center;gap:8px;padding:5px 6px 5px 14px;background:var(--bg3);backdrop-filter:blur(28px);border:1px solid var(--brd);border-radius:100px;box-shadow:var(--shadow);transition:all var(--tr)}
+.TG .tl{font-size:0.68rem;color:var(--t3);user-select:none}
+.TT{width:48px;height:26px;background:var(--glow);border-radius:100px;cursor:pointer;position:relative;transition:background var(--tr)}
+.TK{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--t1);transition:transform 0.35s cubic-bezier(0.68,-0.2,0.27,1.2),background var(--tr);display:flex;align-items:center;justify-content:center;font-size:11px}
+[data-theme="light"] .TK{transform:translateX(22px)}
+.TK .si{display:none}.TK .mi{color:var(--amber)}
+[data-theme="light"] .TK .si{display:block;color:var(--amber)}
+[data-theme="light"] .TK .mi{display:none}
+.hdr{text-align:center;padding:12px 0 28px}
+.hdr h1{font-size:1.7rem;font-weight:800;letter-spacing:-0.8px;color:var(--t1);transition:color var(--tr)}
+.hdr h1 em{font-style:normal;color:var(--blue)}
+.hdr .sub{font-size:0.82rem;color:var(--t3);margin-top:4px;transition:color var(--tr)}
+.pill{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:6px 18px;background:var(--glow);border:1px solid rgba(79,143,255,0.1);border-radius:100px;font-size:0.76rem;color:var(--blue);font-weight:500}
+.pill .ld{width:6px;height:6px;background:var(--green);border-radius:50%;animation:bl 2s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+.tabs{display:flex;justify-content:center;gap:6px;margin:24px 0 18px;flex-wrap:wrap}
+.tab{padding:10px 26px;border-radius:12px;border:1px solid var(--brd);background:var(--bg2);backdrop-filter:blur(20px);font-size:0.82rem;font-weight:600;color:var(--t3);cursor:pointer;transition:all 0.3s;user-select:none;display:flex;align-items:center;gap:8px}
+.tab:hover{border-color:var(--brd2);color:var(--t2)}
+.tab.active{background:var(--glow);border-color:var(--brd2);color:var(--blue);box-shadow:0 0 20px var(--glow2)}
+.tab .ticon{font-size:1rem}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Date Range Picker */
+.dr{display:flex;justify-content:center;align-items:center;gap:10px;margin:0 0 24px;flex-wrap:wrap}
+.dr label{font-size:0.75rem;font-weight:600;color:var(--t2)}
+.dr input[type="date"]{font-family:'Inter',sans-serif;font-size:0.78rem;padding:7px 12px;border-radius:10px;border:1px solid var(--input-brd);background:var(--input-bg);color:var(--t1);outline:none;transition:all 0.3s;cursor:pointer}
+.dr input[type="date"]:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--glow)}
+.dr .dr-btn{font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:600;padding:7px 18px;border-radius:10px;border:1px solid var(--brd2);background:var(--glow);color:var(--blue);cursor:pointer;transition:all 0.3s}
+.dr .dr-btn:hover{background:var(--blue);color:#fff}
+.dr .dr-btn.reset{background:transparent;border-color:var(--brd);color:var(--t3)}
+.dr .dr-btn.reset:hover{border-color:var(--red);color:var(--red)}
+.dr .dr-info{font-size:0.7rem;color:var(--t3);margin-left:4px}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(162px,1fr));gap:12px;margin-bottom:28px}
+.kpi{background:var(--bg2);backdrop-filter:blur(24px);border:1px solid var(--brd);border-radius:16px;padding:16px 14px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:all var(--tr)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;border-radius:16px 16px 0 0}
+.kpi.ok::before{background:var(--green)}.kpi.warn::before{background:var(--red)}.kpi.info::before{background:var(--blue)}
+.kpi .kl{font-size:0.65rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600}
+.kpi .kv{font-size:1.35rem;font-weight:800;letter-spacing:-0.5px}
+.kpi.ok .kv{color:var(--green)}.kpi.warn .kv{color:var(--red)}.kpi.info .kv{color:var(--blue)}
+.kpi .kd{font-size:0.64rem;color:var(--t3);margin-top:5px}
+.kpi .kt{font-size:0.6rem;color:var(--t3);margin-top:2px;opacity:.65}
+.sec{font-size:0.95rem;font-weight:700;color:var(--t2);margin:28px 0 14px;padding-left:14px;border-left:3px solid var(--blue);display:flex;align-items:center;gap:10px;transition:color var(--tr)}
+.sec .cnt{font-size:0.62rem;background:var(--glow);color:var(--blue);padding:2px 10px;border-radius:100px;font-weight:600}
+.cg{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:10px}
+.cb{background:var(--bg2);backdrop-filter:blur(24px);border:1px solid var(--brd);border-radius:18px;padding:20px 18px 14px;box-shadow:var(--shadow);transition:all var(--tr);min-height:260px;position:relative}
+.cb:hover{border-color:var(--brd2);box-shadow:var(--shadow2)}
+.cb.full{grid-column:1/-1}
+.ct{font-size:0.8rem;font-weight:600;color:var(--t2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.ct .cd{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ct .tgt{font-size:0.65rem;color:var(--t3);font-weight:400;margin-left:auto}
+.cb canvas{width:100%!important;height:230px!important}
+.sv-btn{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:8px;border:1px solid var(--brd);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;z-index:10;color:var(--t3);font-size:14px}
+.cb:hover .sv-btn{opacity:1}
+.sv-btn:hover{background:var(--glow);border-color:var(--brd2);color:var(--blue)}
+.foot{text-align:center;padding:36px 0 8px;font-size:0.7rem;color:var(--t3)}
+.foot .credit{margin-top:6px;font-size:0.65rem;opacity:0.7}
+@media(max-width:900px){.cg{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}.hdr h1{font-size:1.3rem}.tabs{gap:4px}.tab{padding:8px 16px;font-size:0.75rem}.dr{gap:6px}.dr input[type="date"]{padding:5px 8px;font-size:0.72rem}}
+</style>
+</head>
+<body>
+
+<div class="TG">
+  <span class="tl">Theme</span>
+  <div class="TT" onclick="toggleTheme()"><div class="TK"><span class="si">&#9728;</span><span class="mi">&#9790;</span></div></div>
+</div>
+
+<div class="W">
+  <header class="hdr">
+    <h1>&#127981; Dashboard <em>แสดงผลวิเคราะห์ของกระบวนการผลิตน้ำตาล</em></h1>
+    <div class="sub">ระบบวิเคราะห์ผลการผลิตน้ำตาล &mdash; Daily Trend Analysis</div>
+    <div class="pill"><span class="ld"></span>ฤดูหีบ 2568/69 &bull; Season 2025/26</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('mill')" id="tab_mill"><span class="ticon">&#9881;</span>ลูกหีบ &mdash; Milling</div>
+    <div class="tab" onclick="switchTab('clar')" id="tab_clar"><span class="ticon">&#129514;</span>ทำใส &mdash; Clarification</div>
+    <div class="tab" onclick="switchTab('evap')" id="tab_evap"><span class="ticon">&#128293;</span>หม้อต้ม &mdash; Evaporation</div>
+    <div class="tab" style="opacity:0.4;cursor:default"><span class="ticon">&#128142;</span>หม้อเคี่ยว</div>
+    <div class="tab" style="opacity:0.4;cursor:default"><span class="ticon">&#127744;</span>หม้อปั่น</div>
+  </div>
+
+  <!-- Date Range Picker -->
+  <div class="dr">
+    <label>&#128197; ช่วงวันที่ :</label>
+    <input type="date" id="dr_from" onchange="applyDateRange()">
+    <span style="color:var(--t3);font-size:0.8rem">&#8594;</span>
+    <input type="date" id="dr_to" onchange="applyDateRange()">
+    <button class="dr-btn" onclick="applyDateRange()">&#128270; กรอง</button>
+    <button class="dr-btn reset" onclick="resetDateRange()">&#8634; ทั้งหมด</button>
+    <span class="dr-info" id="dr_info"></span>
+  </div>
+
+  <!-- MILLING TAB -->
+  <div class="tab-panel active" id="panel_mill">
+    <div class="kpis" id="kpi_mill"></div>
+    <div class="sec">&#128202; Milling Performance <span class="cnt" id="cnt_mill_perf">109 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_pi')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--blue)"></span>Preparation Index (PI)<span class="tgt">Target &#8805; 91.5</span></div><canvas id="m_pi"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_ext')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--green)"></span>Extraction % Pol in Cane<span class="tgt">Target &#8805; 96.25%</span></div><canvas id="m_ext"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_fme')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--cyan)"></span>1st Mill Extraction %</div><canvas id="m_fme"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_tch')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--pink)"></span>Tons Cane / Hour</div><canvas id="m_tch"></canvas></div>
+    </div>
+    <div class="sec">&#127806; Bagasse Quality <span class="cnt" id="cnt_mill_bag">109 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_ppb')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--red)"></span>Pol % Bagasse<span class="tgt">Target &lt; 1.93</span></div><canvas id="m_ppb"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_mpb')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--amber)"></span>Moisture % Bagasse<span class="tgt">Target &#8804; 50%</span></div><canvas id="m_mpb"></canvas></div>
+    </div>
+    <div class="sec">&#128200; Loss &amp; Efficiency <span class="cnt" id="cnt_mill_loss">109 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_pd')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--purple)"></span>Purity Drop<span class="tgt">Target &lt; 1.2</span></div><canvas id="m_pd"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_ml')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--cyan)"></span>Milling Loss</div><canvas id="m_ml"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_ipf')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--amber)"></span>Imbibition % Fiber</div><canvas id="m_ipf"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_ipc')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--green)"></span>Imbibition % Cane</div><canvas id="m_ipc"></canvas></div>
+    </div>
+    <div class="sec">&#127855; Cane &amp; Juice <span class="cnt" id="cnt_mill_cane">109 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_pol')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--blue)"></span>Pol % Cane</div><canvas id="m_pol"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_ccs')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--purple)"></span>CCS</div><canvas id="m_ccs"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_fib')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--green)"></span>Fiber % Cane</div><canvas id="m_fib"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('m_mjpc')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--pink)"></span>Mixed Juice % Cane</div><canvas id="m_mjpc"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CLARIFICATION TAB -->
+  <div class="tab-panel" id="panel_clar">
+    <div class="kpis" id="kpi_clar"></div>
+    <div class="sec">&#129514; Clarified Juice Quality &mdash; คุณภาพน้ำใส <span class="cnt" id="cnt_clar1">109 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_cj_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--blue)"></span>Clarified Juice pH</div><canvas id="c_cj_ph"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_cj_pty')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--green)"></span>CJ Purity %</div><canvas id="c_cj_pty"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_cj_brix')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--purple)"></span>CJ Brix</div><canvas id="c_cj_brix"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_cj_pol')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--cyan)"></span>CJ Pol</div><canvas id="c_cj_pol"></canvas></div>
+    </div>
+    <div class="sec">&#128269; Quality Indicators &mdash; ตัวชี้วัดคุณภาพ <span class="cnt" id="cnt_clar2">109 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_cj_turb')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--amber)"></span>CJ Turbidity (NTU)</div><canvas id="c_cj_turb"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_cj_color')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--pink)"></span>CJ Color (IU)</div><canvas id="c_cj_color"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_cj_po4')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--teal)"></span>CJ PO4 (ppm)</div><canvas id="c_cj_po4"></canvas></div>
+    </div>
+    <div class="sec">&#9879; pH Control &mdash; การควบคุม pH <span class="cnt" id="cnt_clar3">109 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_lime_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--green)"></span>Limed Juice pH</div><canvas id="c_lime_ph"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_mj_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--blue)"></span>Mixed Juice pH</div><canvas id="c_mj_ph"></canvas></div>
+    </div>
+    <div class="sec">&#127981; Mud Filtrate &mdash; น้ำหม้อกรอง <span class="cnt" id="cnt_clar4">109 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_mf_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--amber)"></span>Mud Filtrate pH</div><canvas id="c_mf_ph"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_mf_brix')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--red)"></span>Mud Filtrate Brix</div><canvas id="c_mf_brix"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('c_mf_pol')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--purple)"></span>Mud Filtrate Pol</div><canvas id="c_mf_pol"></canvas></div>
+    </div>
+  </div>
+
+  <!-- EVAPORATION TAB -->
+  <div class="tab-panel" id="panel_evap">
+    <div class="kpis" id="kpi_evap"></div>
+    <div class="sec">&#128293; Evaporator Brix &mdash; ค่า Brix แต่ละชั้น <span class="cnt" id="cnt_evap1">93 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e1_brix')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--blue)"></span>Evap #1 Brix</div><canvas id="e_e1_brix"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e2_brix')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--green)"></span>Evap #2 Brix</div><canvas id="e_e2_brix"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e3_brix')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--purple)"></span>Evap #3 Brix</div><canvas id="e_e3_brix"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e4_brix')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--cyan)"></span>Evap #4 Brix</div><canvas id="e_e4_brix"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e5_brix')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--pink)"></span>Evap #5 Brix (Syrup)</div><canvas id="e_e5_brix"></canvas></div>
+    </div>
+    <div class="sec">&#9879; Evaporator pH &mdash; ค่า pH แต่ละชั้น <span class="cnt" id="cnt_evap2">93 days</span></div>
+    <div class="cg">
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e1_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--blue)"></span>Evap #1 pH</div><canvas id="e_e1_ph"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e2_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--green)"></span>Evap #2 pH</div><canvas id="e_e2_ph"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e3_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--purple)"></span>Evap #3 pH</div><canvas id="e_e3_ph"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e4_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--cyan)"></span>Evap #4 pH</div><canvas id="e_e4_ph"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_e5_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--pink)"></span>Evap #5 pH</div><canvas id="e_e5_ph"></canvas></div>
+      <div class="cb"><button class="sv-btn" onclick="saveChart('e_syrup_ph')">&#128247;</button><div class="ct"><span class="cd" style="background:var(--amber)"></span>Raw Syrup pH</div><canvas id="e_syrup_ph"></canvas></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Dashboard แสดงผลวิเคราะห์ของกระบวนการผลิตน้ำตาล &mdash; 133 Master Report files &bull; Season 2025/26
+    <div class="credit">พัฒนาโดย นายสุรศักดิ์ นามวรรณ แผนกบริหารคุณภาพ มิตรลาว</div>
+  </div>
+</div>
+
+<script>
+const MILL_ALL = [{"d":"2025-12-10","tc":1258.61,"fib":12.635,"pol":12.5614,"ccs":10.9793,"tch":112.7113,"pi":95.0098,"fme":69.2947,"bpc":26.7585,"ppb":1.5736,"mpb":50.21,"mjpc":124.9353,"ext":96.6478,"ipc":51.6938,"ipf":409.1317,"ml":3.3326,"pd":2.6185},{"d":"2025-12-11","tc":3313.05,"fib":12.5299,"pol":13.0133,"ccs":11.3615,"tch":163.6074,"pi":92.17,"fme":72.61,"bpc":27.4221,"ppb":1.8886,"mpb":50.9867,"mjpc":116.4525,"ext":96.0203,"ipc":43.8747,"ipf":350.1592,"ml":4.1332,"pd":1.3199},{"d":"2025-12-12","tc":3644.66,"fib":12.8848,"pol":13.3427,"ccs":11.8027,"tch":179.2456,"pi":91.7,"fme":77.23,"bpc":26.504,"ppb":1.4527,"mpb":49.16,"mjpc":111.7385,"ext":97.1144,"ipc":38.2425,"ipf":296.8028,"ml":2.9882,"pd":0.6859},{"d":"2025-12-13","tc":4275.14,"fib":12.9037,"pol":13.0574,"ccs":11.4608,"tch":214.6514,"pi":92.5484,"fme":75.7503,"bpc":25.3681,"ppb":1.8014,"mpb":46.38,"mjpc":107.408,"ext":96.5003,"ipc":32.7761,"ipf":254.0054,"ml":3.5414,"pd":0.9392},{"d":"2025-12-14","tc":6036.79,"fib":13.1667,"pol":13.2989,"ccs":11.7936,"tch":261.5216,"pi":91.9159,"fme":76.7514,"bpc":26.1813,"ppb":1.8024,"mpb":46.971,"mjpc":103.793,"ext":96.4516,"ipc":29.9743,"ipf":227.6525,"ml":3.584,"pd":1.1208},{"d":"2025-12-15","tc":5079.38,"fib":13.288,"pol":13.4354,"ccs":11.8106,"tch":236.2502,"pi":92.3664,"fme":77.66,"bpc":27.1252,"ppb":1.6168,"mpb":48.7412,"mjpc":105.7445,"ext":96.7358,"ipc":32.8697,"ipf":247.3632,"ml":3.3004,"pd":0.8876},{"d":"2025-12-16","tc":4992.93,"fib":12.9907,"pol":13.6292,"ccs":12.1506,"tch":208.0387,"pi":91.7012,"fme":84.5702,"bpc":25.4909,"ppb":1.3228,"mpb":47.1567,"mjpc":109.0021,"ext":97.526,"ipc":34.4931,"ipf":265.5206,"ml":2.5956,"pd":0.9869},{"d":"2025-12-17","tc":5126.97,"fib":12.9887,"pol":13.5448,"ccs":12.0169,"tch":218.1689,"pi":90.41,"fme":78.17,"bpc":24.2837,"ppb":1.3091,"mpb":44.6251,"mjpc":107.8563,"ext":97.653,"ipc":32.14,"ipf":247.4456,"ml":2.4475,"pd":1.0724},{"d":"2025-12-18","tc":5366.03,"fib":12.9114,"pol":13.8496,"ccs":12.3225,"tch":223.5846,"pi":91.3793,"fme":79.8051,"bpc":24.6436,"ppb":1.3334,"mpb":45.6268,"mjpc":108.0506,"ext":97.6274,"ipc":32.6941,"ipf":253.2199,"ml":2.545,"pd":1.0519},{"d":"2025-12-19","tc":2600.49,"fib":12.7854,"pol":13.6431,"ccs":12.0562,"tch":202.6356,"pi":92.8826,"fme":79.7957,"bpc":24.6574,"ppb":1.5298,"mpb":45.9326,"mjpc":107.6289,"ext":97.2351,"ipc":32.2863,"ipf":252.5247,"ml":2.9503,"pd":1.145},{"d":"2025-12-20","tc":5381.23,"fib":12.9211,"pol":13.7347,"ccs":12.1396,"tch":224.2179,"pi":91.7012,"fme":79.0795,"bpc":25.4934,"ppb":1.2809,"mpb":47.4003,"mjpc":107.7953,"ext":97.6225,"ipc":33.2887,"ipf":257.6305,"ml":2.5272,"pd":0.9921},{"d":"2025-12-21","tc":3993.24,"fib":13.0788,"pol":13.7317,"ccs":12.0138,"tch":221.8467,"pi":92.2601,"fme":80.8489,"bpc":25.7824,"ppb":1.3721,"mpb":47.2649,"mjpc":104.3762,"ext":97.4237,"ipc":30.1586,"ipf":230.5925,"ml":2.7049,"pd":1.0445},{"d":"2025-12-22","tc":2984.58,"fib":12.9251,"pol":13.8241,"ccs":12.1449,"tch":248.715,"pi":92.31,"fme":78.52,"bpc":24.0521,"ppb":1.4079,"mpb":44.22,"mjpc":106.4759,"ext":97.5505,"ipc":30.5279,"ipf":236.1919,"ml":2.6199,"pd":0.7699},{"d":"2025-12-23","tc":1517.28,"fib":13.0148,"pol":14.1192,"ccs":12.3889,"tch":209.28,"pi":92.6,"fme":78.93,"bpc":24.1308,"ppb":1.4328,"mpb":43.8625,"mjpc":105.7124,"ext":97.5512,"ipc":29.8432,"ipf":229.3025,"ml":2.6566,"pd":1.3859},{"d":"2025-12-24","tc":3987.18,"fib":13.4278,"pol":13.7921,"ccs":11.9697,"tch":223.5802,"pi":92.5484,"fme":79.8869,"bpc":25.8311,"ppb":1.58,"mpb":45.44,"mjpc":104.5429,"ext":97.0408,"ipc":30.374,"ipf":226.202,"ml":3.0395,"pd":0.865},{"d":"2025-12-25","tc":5608.09,"fib":13.3993,"pol":13.3077,"ccs":11.4466,"tch":233.6704,"pi":92.5484,"fme":78.3968,"bpc":26.1759,"ppb":1.4967,"mpb":46.3976,"mjpc":103.9973,"ext":97.056,"ipc":30.1732,"ipf":225.1854,"ml":2.9238,"pd":0.8762},{"d":"2025-12-26","tc":5766.71,"fib":13.7665,"pol":13.3784,"ccs":11.5596,"tch":240.2796,"pi":92.5206,"fme":78.8995,"bpc":25.8545,"ppb":1.3239,"mpb":44.6976,"mjpc":103.8158,"ext":97.4415,"ipc":29.6703,"ipf":215.5245,"ml":2.4864,"pd":1.0841},{"d":"2025-12-27","tc":5621.13,"fib":13.9656,"pol":13.6064,"ccs":11.7926,"tch":237.5125,"pi":92.5206,"fme":82.0739,"bpc":26.9994,"ppb":1.515,"mpb":45.5615,"mjpc":104.4238,"ext":96.9937,"ipc":31.4232,"ipf":225.0047,"ml":2.929,"pd":1.2578},{"d":"2025-12-28","tc":5756.86,"fib":13.8483,"pol":13.2248,"ccs":11.4527,"tch":239.8692,"pi":92.5484,"fme":81.1147,"bpc":26.1909,"ppb":1.2256,"mpb":44.9409,"mjpc":106.0257,"ext":97.5727,"ipc":32.2166,"ipf":232.6396,"ml":2.318,"pd":1.0156},{"d":"2025-12-29","tc":5692.33,"fib":13.7049,"pol":13.7327,"ccs":11.9862,"tch":241.3709,"pi":92.4925,"fme":80.0237,"bpc":25.5264,"ppb":1.4414,"mpb":43.6781,"mjpc":104.7105,"ext":97.3208,"ipc":30.2368,"ipf":220.6275,"ml":2.6847,"pd":1.146},{"d":"2025-12-30","tc":2850.62,"fib":13.5323,"pol":13.7507,"ccs":12.0682,"tch":216.5028,"pi":92.4925,"fme":76.0497,"bpc":27.2043,"ppb":1.3964,"mpb":47.6204,"mjpc":103.0288,"ext":97.2373,"ipc":30.2331,"ipf":223.4143,"ml":2.8073,"pd":1.19},{"d":"2026-01-03","tc":1035.87,"fib":12.95,"pol":14.5797,"ccs":12.7293,"tch":258.9675,"pi":92.34,"fme":80.56,"bpc":26.2539,"ppb":1.18,"mpb":48.76,"mjpc":112.8986,"ext":97.8752,"ipc":39.1525,"ipf":302.3362,"ml":2.3922,"pd":0.6578},{"d":"2026-01-04","tc":4842.07,"fib":12.257,"pol":13.6587,"ccs":11.6537,"tch":210.5248,"pi":88.7809,"fme":72.3227,"bpc":23.4614,"ppb":1.6132,"mpb":45.0255,"mjpc":107.4536,"ext":97.229,"ipc":30.915,"ipf":252.224,"ml":3.0879,"pd":1.2524},{"d":"2026-01-05","tc":5032.95,"fib":12.4244,"pol":13.5737,"ccs":11.6132,"tch":209.7062,"pi":92.3372,"fme":80.1405,"bpc":23.4077,"ppb":1.4652,"mpb":44.6467,"mjpc":114.6931,"ext":97.4732,"ipc":38.1008,"ipf":306.6604,"ml":2.7605,"pd":1.2348},{"d":"2026-01-06","tc":4075.64,"fib":12.7088,"pol":13.8003,"ccs":12.015,"tch":198.8117,"pi":91.7012,"fme":79.5317,"bpc":23.9082,"ppb":1.5063,"mpb":44.7876,"mjpc":114.0773,"ext":97.3904,"ipc":37.9855,"ipf":298.8922,"ml":2.8337,"pd":1.5916},{"d":"2026-01-07","tc":2876.69,"fib":12.4782,"pol":13.9484,"ccs":11.9518,"tch":205.4779,"pi":92.278,"fme":80.9569,"bpc":24.3156,"ppb":1.4715,"mpb":46.6468,"mjpc":116.5162,"ext":97.4348,"ipc":40.8318,"ipf":327.2255,"ml":2.8675,"pd":0.9964},{"d":"2026-01-08","tc":2956.04,"fib":12.9083,"pol":14.0536,"ccs":12.3561,"tch":123.1683,"pi":95.6522,"fme":80.9996,"bpc":25.0382,"ppb":1.1955,"mpb":46.7512,"mjpc":109.2725,"ext":97.87,"ipc":34.3107,"ipf":265.804,"ml":2.319,"pd":0.791},{"d":"2026-01-09","tc":5525.7,"fib":13.3502,"pol":14.4931,"ccs":12.8771,"tch":230.2375,"pi":92.0,"fme":77.8904,"bpc":25.5223,"ppb":1.3901,"mpb":45.441,"mjpc":109.8828,"ext":97.552,"ipc":35.405,"ipf":265.2027,"ml":2.6576,"pd":0.3869},{"d":"2026-01-10","tc":6504.6,"fib":13.1626,"pol":14.7854,"ccs":13.474,"tch":276.7915,"pi":92.3077,"fme":80.1113,"bpc":24.4298,"ppb":1.6067,"mpb":43.7579,"mjpc":104.7408,"ext":97.3453,"ipc":29.1705,"ipf":221.6159,"ml":2.9819,"pd":1.2213},{"d":"2026-01-11","tc":8120.14,"fib":13.5058,"pol":14.695,"ccs":13.3275,"tch":338.3392,"pi":92.6471,"fme":80.1286,"bpc":25.5076,"ppb":1.6882,"mpb":44.6933,"mjpc":102.7936,"ext":97.0697,"ipc":28.3011,"ipf":209.5481,"ml":3.1883,"pd":0.9283},{"d":"2026-01-12","tc":7287.58,"fib":13.8965,"pol":14.9134,"ccs":13.5643,"tch":325.8232,"pi":92.3664,"fme":80.7223,"bpc":25.9557,"ppb":1.8213,"mpb":43.9733,"mjpc":100.7217,"ext":96.8302,"ipc":26.6773,"ipf":191.9719,"ml":3.4018,"pd":0.9139},{"d":"2026-01-13","tc":8091.33,"fib":13.9895,"pol":15.0571,"ccs":13.868,"tch":337.1388,"pi":92.5926,"fme":76.2898,"bpc":25.7329,"ppb":1.7807,"mpb":43.2667,"mjpc":103.304,"ext":96.9567,"ipc":29.037,"ipf":207.5631,"ml":3.2755,"pd":0.5336},{"d":"2026-01-14","tc":7775.84,"fib":13.7427,"pol":15.1626,"ccs":13.9053,"tch":323.9933,"pi":92.1691,"fme":80.6686,"bpc":25.1197,"ppb":1.5907,"mpb":43.14,"mjpc":104.6577,"ext":97.3647,"ipc":29.7774,"ipf":216.6777,"ml":2.9076,"pd":1.099},{"d":"2026-01-15","tc":7282.1,"fib":13.4932,"pol":15.1624,"ccs":13.8972,"tch":337.9165,"pi":92.1384,"fme":80.6,"bpc":25.2558,"ppb":1.8873,"mpb":43.9667,"mjpc":102.6753,"ext":96.8563,"ipc":27.9311,"ipf":207.001,"ml":3.5326,"pd":1.0328},{"d":"2026-01-16","tc":4571.62,"fib":13.2794,"pol":14.7262,"ccs":13.355,"tch":272.9325,"pi":92.4357,"fme":80.4112,"bpc":25.07,"ppb":1.5821,"mpb":44.72,"mjpc":105.9342,"ext":97.3066,"ipc":31.0042,"ipf":233.4762,"ml":2.9868,"pd":1.2724},{"d":"2026-01-17","tc":6389.48,"fib":12.9103,"pol":15.2727,"ccs":13.9213,"tch":266.2283,"pi":92.6199,"fme":80.8661,"bpc":24.0839,"ppb":1.6557,"mpb":44.0416,"mjpc":105.624,"ext":97.389,"ipc":29.7079,"ipf":230.1106,"ml":3.0888,"pd":1.1833},{"d":"2026-01-18","tc":6120.34,"fib":13.2669,"pol":15.153,"ccs":13.7829,"tch":255.0142,"pi":92.2794,"fme":78.59,"bpc":25.4983,"ppb":1.7698,"mpb":45.5071,"mjpc":107.8237,"ext":97.022,"ipc":33.322,"ipf":251.167,"ml":3.4014,"pd":1.1693},{"d":"2026-01-19","tc":6951.8,"fib":13.4593,"pol":15.2158,"ccs":13.7767,"tch":304.4584,"pi":95.4751,"fme":81.2633,"bpc":24.6244,"ppb":1.8144,"mpb":42.8421,"mjpc":103.8604,"ext":97.0636,"ipc":28.4848,"ipf":211.6362,"ml":3.3196,"pd":1.1235},{"d":"2026-01-20","tc":8006.19,"fib":13.7306,"pol":15.2554,"ccs":13.8562,"tch":337.1027,"pi":92.6199,"fme":77.2875,"bpc":26.3354,"ppb":1.8694,"mpb":45.1941,"mjpc":103.0059,"ext":96.7728,"ipc":29.3413,"ipf":213.6923,"ml":3.5856,"pd":1.0441},{"d":"2026-01-21","tc":7479.47,"fib":14.0026,"pol":15.3203,"ccs":13.9942,"tch":316.0339,"pi":92.8826,"fme":78.1998,"bpc":26.2975,"ppb":1.8287,"mpb":44.1911,"mjpc":100.9899,"ext":96.861,"ipc":27.2874,"ipf":194.8742,"ml":3.4344,"pd":1.1503},{"d":"2026-01-22","tc":6160.32,"fib":14.0793,"pol":15.1107,"ccs":13.6922,"tch":313.2366,"pi":91.9847,"fme":77.2189,"bpc":26.7503,"ppb":1.7774,"mpb":44.89,"mjpc":102.005,"ext":96.8536,"ipc":28.7553,"ipf":204.2382,"ml":3.3769,"pd":1.2491},{"d":"2026-01-23","tc":8648.02,"fib":14.0626,"pol":15.302,"ccs":13.9398,"tch":360.3342,"pi":92.3372,"fme":80.5394,"bpc":26.4837,"ppb":1.68,"mpb":44.6246,"mjpc":102.3161,"ext":97.0923,"ipc":28.7998,"ipf":204.7972,"ml":3.164,"pd":1.2198},{"d":"2026-01-24","tc":8557.88,"fib":13.7417,"pol":14.7862,"ccs":13.2976,"tch":360.3318,"pi":93.1271,"fme":82.1303,"bpc":25.3162,"ppb":1.913,"mpb":43.0,"mjpc":105.3994,"ext":96.7246,"ipc":30.7156,"ipf":223.5208,"ml":3.5244,"pd":1.0068},{"d":"2026-01-25","tc":8327.87,"fib":13.5587,"pol":15.3292,"ccs":13.9939,"tch":349.4211,"pi":92.3372,"fme":80.2118,"bpc":25.9818,"ppb":1.9185,"mpb":45.1236,"mjpc":106.3739,"ext":96.7483,"ipc":32.3557,"ipf":238.6335,"ml":3.6763,"pd":1.3381},{"d":"2026-01-26","tc":8244.68,"fib":13.704,"pol":15.3275,"ccs":13.9552,"tch":343.5283,"pi":95.671,"fme":82.4607,"bpc":25.1737,"ppb":1.7313,"mpb":43.1675,"mjpc":103.9233,"ext":97.1565,"ipc":29.0969,"ipf":212.3241,"ml":3.1804,"pd":1.2135},{"d":"2026-01-27","tc":8059.01,"fib":13.7374,"pol":15.4186,"ccs":14.0108,"tch":342.4508,"pi":91.3223,"fme":80.4451,"bpc":25.2359,"ppb":1.6403,"mpb":43.181,"mjpc":108.74,"ext":97.3153,"ipc":33.9758,"ipf":247.3235,"ml":3.0132,"pd":1.1598},{"d":"2026-01-28","tc":8179.86,"fib":13.9666,"pol":15.3461,"ccs":13.9382,"tch":340.8275,"pi":92.3372,"fme":80.0622,"bpc":25.8967,"ppb":1.7556,"mpb":43.5704,"mjpc":106.5849,"ext":97.0375,"ipc":32.4816,"ipf":232.566,"ml":3.2551,"pd":1.144},{"d":"2026-01-29","tc":8151.51,"fib":14.499,"pol":15.2384,"ccs":13.8407,"tch":339.6463,"pi":92.0319,"fme":81.809,"bpc":27.0174,"ppb":1.8795,"mpb":43.6467,"mjpc":105.0599,"ext":96.6677,"ipc":32.0773,"ipf":221.2374,"ml":3.5022,"pd":0.9942},{"d":"2026-01-30","tc":8177.44,"fib":14.4797,"pol":15.2706,"ccs":13.9027,"tch":340.7267,"pi":92.5532,"fme":82.609,"bpc":26.6178,"ppb":1.8716,"mpb":43.0133,"mjpc":103.9954,"ext":96.7377,"ipc":30.6131,"ipf":211.4211,"ml":3.4405,"pd":1.0467},{"d":"2026-01-31","tc":8345.7,"fib":14.2979,"pol":15.5133,"ccs":14.2289,"tch":347.7375,"pi":92.3372,"fme":83.3677,"bpc":26.6178,"ppb":2.1111,"mpb":43.4075,"mjpc":104.591,"ext":96.3778,"ipc":31.2088,"ipf":218.2748,"ml":3.9301,"pd":1.2669},{"d":"2026-02-01","tc":7555.47,"fib":14.5149,"pol":15.6409,"ccs":14.228,"tch":314.8112,"pi":92.6199,"fme":82.4738,"bpc":26.4494,"ppb":1.6655,"mpb":42.74,"mjpc":108.332,"ext":97.1836,"ipc":34.7813,"ipf":239.6252,"ml":3.0349,"pd":0.9289},{"d":"2026-02-02","tc":7330.88,"fib":14.2101,"pol":15.5938,"ccs":14.2651,"tch":305.4533,"pi":92.8826,"fme":79.8394,"bpc":26.1233,"ppb":1.756,"mpb":43.1289,"mjpc":107.6283,"ext":97.0583,"ipc":33.7516,"ipf":237.5181,"ml":3.2282,"pd":0.9081},{"d":"2026-02-03","tc":1637.2,"fib":14.2693,"pol":15.6989,"ccs":14.4932,"tch":322.0721,"pi":92.8826,"fme":79.8394,"bpc":26.0258,"ppb":1.9298,"mpb":42.563,"mjpc":103.5693,"ext":96.8007,"ipc":29.5951,"ipf":207.4035,"ml":3.5198,"pd":1.0195},{"d":"2026-02-05","tc":4801.72,"fib":14.5588,"pol":15.6282,"ccs":14.3201,"tch":293.9829,"pi":92.3372,"fme":79.5614,"bpc":25.7591,"ppb":1.4602,"mpb":41.51,"mjpc":107.845,"ext":97.5932,"ipc":33.6041,"ipf":230.8169,"ml":2.5836,"pd":0.9191},{"d":"2026-02-06","tc":8206.91,"fib":14.2499,"pol":15.6998,"ccs":14.3177,"tch":341.9546,"pi":92.8826,"fme":83.4254,"bpc":25.8795,"ppb":1.8397,"mpb":42.438,"mjpc":105.9211,"ext":96.9674,"ipc":31.8005,"ipf":223.1634,"ml":3.3412,"pd":0.9757},{"d":"2026-02-07","tc":8056.03,"fib":14.0119,"pol":15.5565,"ccs":14.0754,"tch":335.6679,"pi":92.6199,"fme":81.5422,"bpc":25.6032,"ppb":1.8312,"mpb":42.6971,"mjpc":108.4177,"ext":96.9862,"ipc":34.0209,"ipf":242.8,"ml":3.346,"pd":0.8052},{"d":"2026-02-08","tc":8238.92,"fib":14.0817,"pol":15.9854,"ccs":14.5983,"tch":343.2883,"pi":92.5532,"fme":80.2521,"bpc":26.0839,"ppb":1.7141,"mpb":43.698,"mjpc":108.6587,"ext":97.203,"ipc":34.7426,"ipf":246.7225,"ml":3.1751,"pd":0.9159},{"d":"2026-02-09","tc":7820.15,"fib":14.1052,"pol":15.6981,"ccs":14.3186,"tch":333.9566,"pi":92.8826,"fme":80.25,"bpc":26.016,"ppb":1.8387,"mpb":43.2874,"mjpc":106.1687,"ext":96.9528,"ipc":32.1847,"ipf":228.1753,"ml":3.3913,"pd":0.9653},{"d":"2026-02-10","tc":8222.18,"fib":14.2983,"pol":15.6494,"ccs":14.2587,"tch":342.5908,"pi":92.1439,"fme":79.9944,"bpc":26.3712,"ppb":1.9709,"mpb":43.118,"mjpc":105.3424,"ext":96.6788,"ipc":31.7137,"ipf":221.7995,"ml":3.635,"pd":1.0371},{"d":"2026-02-11","tc":8198.37,"fib":14.6867,"pol":15.8318,"ccs":14.4985,"tch":341.5988,"pi":92.8826,"fme":77.9771,"bpc":26.7308,"ppb":2.0382,"mpb":42.3314,"mjpc":105.357,"ext":96.5587,"ipc":32.0878,"ipf":218.4811,"ml":3.7096,"pd":1.0325},{"d":"2026-02-12","tc":8257.57,"fib":14.8237,"pol":16.1121,"ccs":14.8103,"tch":344.0654,"pi":93.1271,"fme":78.6472,"bpc":27.2378,"ppb":1.9463,"mpb":42.9077,"mjpc":106.044,"ext":96.7097,"ipc":33.2818,"ipf":224.5172,"ml":3.5763,"pd":1.1249},{"d":"2026-02-13","tc":7882.84,"fib":14.6855,"pol":16.1717,"ccs":14.8807,"tch":328.4517,"pi":92.3372,"fme":80.6009,"bpc":26.5609,"ppb":1.6991,"mpb":42.3877,"mjpc":107.1864,"ext":97.2094,"ipc":33.7473,"ipf":229.8003,"ml":3.073,"pd":1.2277},{"d":"2026-02-14","tc":8293.58,"fib":14.6294,"pol":15.9958,"ccs":14.5808,"tch":345.5658,"pi":92.8826,"fme":79.5269,"bpc":26.1857,"ppb":1.85,"mpb":41.58,"mjpc":107.136,"ext":96.9715,"ipc":33.3217,"ipf":227.7727,"ml":3.3114,"pd":1.0778},{"d":"2026-02-15","tc":6597.79,"fib":14.6084,"pol":16.2743,"ccs":14.9078,"tch":299.8995,"pi":92.8826,"fme":81.0938,"bpc":26.9979,"ppb":1.8298,"mpb":43.4458,"mjpc":109.1791,"ext":96.9644,"ipc":36.1771,"ipf":247.6451,"ml":3.3817,"pd":1.1105},{"d":"2026-02-16","tc":6929.81,"fib":14.4132,"pol":16.0928,"ccs":14.5908,"tch":299.1285,"pi":92.6199,"fme":80.8045,"bpc":26.3545,"ppb":2.1041,"mpb":42.481,"mjpc":106.0619,"ext":96.5542,"ipc":32.4164,"ipf":224.9073,"ml":3.8474,"pd":1.0584},{"d":"2026-02-17","tc":7290.71,"fib":14.5267,"pol":16.0819,"ccs":14.6173,"tch":348.5598,"pi":92.6199,"fme":80.4683,"bpc":27.0054,"ppb":1.9,"mpb":43.64,"mjpc":106.3193,"ext":96.8094,"ipc":33.3248,"ipf":229.4039,"ml":3.5321,"pd":0.9785},{"d":"2026-02-18","tc":7428.78,"fib":14.4657,"pol":16.0454,"ccs":14.6847,"tch":342.8668,"pi":92.6199,"fme":80.0406,"bpc":26.2706,"ppb":1.855,"mpb":42.3143,"mjpc":106.776,"ext":96.9629,"ipc":33.0465,"ipf":228.4471,"ml":3.3688,"pd":1.4384},{"d":"2026-02-19","tc":8479.57,"fib":14.4719,"pol":16.0466,"ccs":14.6258,"tch":353.3154,"pi":96.31,"fme":79.7197,"bpc":26.3532,"ppb":1.8395,"mpb":42.5333,"mjpc":108.342,"ext":96.9789,"ipc":34.6952,"ipf":239.7422,"ml":3.3498,"pd":0.8453},{"d":"2026-02-20","tc":8143.26,"fib":14.7056,"pol":15.8303,"ccs":14.402,"tch":339.3025,"pi":92.6813,"fme":78.1028,"bpc":27.254,"ppb":1.8719,"mpb":43.4,"mjpc":106.6389,"ext":96.7772,"ipc":33.8929,"ipf":230.4756,"ml":3.4692,"pd":0.979},{"d":"2026-02-21","tc":7187.05,"fib":14.8879,"pol":15.9099,"ccs":14.5116,"tch":301.5545,"pi":89.6907,"fme":78.3198,"bpc":27.479,"ppb":1.8059,"mpb":43.2875,"mjpc":109.1939,"ext":96.881,"ipc":36.6729,"ipf":246.3273,"ml":3.3332,"pd":1.0227},{"d":"2026-02-22","tc":4479.76,"fib":15.1437,"pol":16.3104,"ccs":14.9374,"tch":300.3191,"pi":92.6471,"fme":78.3586,"bpc":28.2979,"ppb":1.9537,"mpb":43.7867,"mjpc":109.6799,"ext":96.6104,"ipc":37.9777,"ipf":250.7828,"ml":3.6508,"pd":1.0751},{"d":"2026-02-24","tc":6169.89,"fib":15.1182,"pol":15.658,"ccs":14.0561,"tch":280.4495,"pi":92.6199,"fme":78.925,"bpc":27.2113,"ppb":1.8738,"mpb":41.941,"mjpc":107.7879,"ext":96.7435,"ipc":34.9991,"ipf":231.5034,"ml":3.3727,"pd":0.7697},{"d":"2026-02-25","tc":8123.35,"fib":14.8791,"pol":15.983,"ccs":14.5731,"tch":338.4729,"pi":92.8826,"fme":79.2495,"bpc":26.6517,"ppb":1.7663,"mpb":41.7506,"mjpc":107.4477,"ext":97.0546,"ipc":34.0994,"ipf":229.1772,"ml":3.1639,"pd":1.0336},{"d":"2026-02-27","tc":4485.73,"fib":14.6116,"pol":15.8419,"ccs":14.3635,"tch":311.1489,"pi":91.7355,"fme":81.1654,"bpc":26.825,"ppb":1.5204,"mpb":43.38,"mjpc":107.8852,"ext":97.4256,"ipc":34.7102,"ipf":237.5527,"ml":2.7912,"pd":1.1895},{"d":"2026-02-28","tc":7349.53,"fib":14.6388,"pol":15.5207,"ccs":13.9892,"tch":306.2304,"pi":92.3664,"fme":79.025,"bpc":26.1581,"ppb":1.7254,"mpb":41.4585,"mjpc":108.4204,"ext":97.092,"ipc":34.5785,"ipf":236.2109,"ml":3.0831,"pd":1.0061},{"d":"2026-03-01","tc":7130.39,"fib":14.5897,"pol":15.7772,"ccs":14.289,"tch":302.7766,"pi":92.4488,"fme":80.1789,"bpc":26.1357,"ppb":1.8826,"mpb":41.6478,"mjpc":109.1202,"ext":96.8813,"ipc":35.2559,"ipf":241.6495,"ml":3.3725,"pd":0.9673},{"d":"2026-03-02","tc":6965.31,"fib":14.21,"pol":16.0765,"ccs":14.6063,"tch":292.2508,"pi":92.7062,"fme":78.6424,"bpc":25.253,"ppb":1.7836,"mpb":41.3609,"mjpc":112.4973,"ext":97.1983,"ipc":37.7503,"ipf":265.6606,"ml":3.1697,"pd":0.7005},{"d":"2026-03-03","tc":6469.54,"fib":14.3469,"pol":16.2015,"ccs":14.5317,"tch":269.5642,"pi":93.1507,"fme":79.0431,"bpc":27.0116,"ppb":1.8379,"mpb":44.3395,"mjpc":112.9227,"ext":96.9358,"ipc":39.9343,"ipf":278.347,"ml":3.4603,"pd":0.839},{"d":"2026-03-04","tc":6984.32,"fib":14.449,"pol":16.3089,"ccs":14.8678,"tch":291.0133,"pi":93.9759,"fme":81.4229,"bpc":27.059,"ppb":1.8377,"mpb":44.0933,"mjpc":110.3605,"ext":96.951,"ipc":37.4195,"ipf":258.9758,"ml":3.4414,"pd":0.9104},{"d":"2026-03-05","tc":6790.38,"fib":14.4192,"pol":16.0117,"ccs":14.4814,"tch":282.9325,"pi":92.8826,"fme":78.8672,"bpc":26.1729,"ppb":1.8477,"mpb":42.46,"mjpc":111.453,"ext":96.9798,"ipc":37.6259,"ipf":260.9433,"ml":3.3538,"pd":0.8823},{"d":"2026-03-06","tc":4740.53,"fib":14.6951,"pol":16.1417,"ccs":14.819,"tch":284.4318,"pi":90.0332,"fme":80.6916,"bpc":26.2521,"ppb":1.5509,"mpb":41.8638,"mjpc":111.4304,"ext":97.4776,"ipc":37.6825,"ipf":256.4299,"ml":2.7707,"pd":0.9296},{"d":"2026-03-07","tc":5736.74,"fib":14.7263,"pol":16.0954,"ccs":14.7547,"tch":280.9832,"pi":93.1507,"fme":82.5555,"bpc":26.4344,"ppb":1.8319,"mpb":42.0267,"mjpc":109.4783,"ext":96.9914,"ipc":35.9127,"ipf":243.8673,"ml":3.2883,"pd":1.1347},{"d":"2026-03-08","tc":6787.76,"fib":14.383,"pol":16.3632,"ccs":14.9863,"tch":282.8233,"pi":92.6199,"fme":79.9318,"bpc":26.2727,"ppb":1.8145,"mpb":42.8844,"mjpc":112.2279,"ext":97.0866,"ipc":38.5006,"ipf":267.681,"ml":3.3145,"pd":0.875},{"d":"2026-03-09","tc":6751.84,"fib":14.6414,"pol":16.1574,"ccs":14.6739,"tch":281.3267,"pi":93.2692,"fme":78.3283,"bpc":26.6653,"ppb":1.873,"mpb":42.64,"mjpc":111.4742,"ext":96.909,"ipc":38.1395,"ipf":260.49,"ml":3.4111,"pd":1.6353},{"d":"2026-03-10","tc":6494.26,"fib":14.8437,"pol":16.0543,"ccs":14.5864,"tch":270.5942,"pi":92.4221,"fme":81.8976,"bpc":27.3483,"ppb":1.8469,"mpb":43.2008,"mjpc":111.539,"ext":96.8538,"ipc":38.8873,"ipf":261.978,"ml":3.4028,"pd":1.1144},{"d":"2026-03-11","tc":6111.2,"fib":14.9845,"pol":16.5284,"ccs":15.1582,"tch":281.6221,"pi":93.2692,"fme":79.3237,"bpc":28.0781,"ppb":1.8132,"mpb":44.1473,"mjpc":112.603,"ext":96.9198,"ipc":40.6811,"ipf":271.4874,"ml":3.3976,"pd":0.7816},{"d":"2026-03-12","tc":6671.9,"fib":14.9034,"pol":15.5861,"ccs":14.0368,"tch":281.9113,"pi":89.0071,"fme":80.4064,"bpc":27.3998,"ppb":1.7646,"mpb":43.1318,"mjpc":110.1154,"ext":96.8979,"ipc":37.5152,"ipf":251.7231,"ml":3.2442,"pd":0.927},{"d":"2026-03-13","tc":6640.12,"fib":14.8469,"pol":16.0976,"ccs":14.7064,"tch":276.6717,"pi":92.8571,"fme":81.467,"bpc":27.6646,"ppb":1.6642,"mpb":44.0667,"mjpc":110.8626,"ext":97.14,"ipc":38.5273,"ipf":259.4969,"ml":3.1009,"pd":0.8936},{"d":"2026-03-14","tc":6628.55,"fib":14.9923,"pol":16.5263,"ccs":15.2199,"tch":276.1896,"pi":92.8826,"fme":80.7006,"bpc":27.6612,"ppb":1.8059,"mpb":43.34,"mjpc":112.4694,"ext":96.9773,"ipc":40.1306,"ipf":267.6747,"ml":3.3319,"pd":1.1592},{"d":"2026-03-15","tc":6070.42,"fib":15.0431,"pol":16.5614,"ccs":15.144,"tch":252.9342,"pi":92.9078,"fme":78.2265,"bpc":27.5919,"ppb":1.7812,"mpb":43.14,"mjpc":111.5375,"ext":97.0325,"ipc":39.1294,"ipf":260.1155,"ml":3.267,"pd":0.8402},{"d":"2026-03-16","tc":5615.75,"fib":15.0029,"pol":16.1587,"ccs":14.5602,"tch":233.9896,"pi":92.0319,"fme":81.9215,"bpc":28.5712,"ppb":1.8287,"mpb":45.04,"mjpc":112.0184,"ext":96.7666,"ipc":40.5896,"ipf":270.5447,"ml":3.4825,"pd":0.8255},{"d":"2026-03-17","tc":5612.0,"fib":15.0531,"pol":16.3235,"ccs":14.8022,"tch":238.8085,"pi":92.8826,"fme":79.6708,"bpc":27.9847,"ppb":1.8552,"mpb":43.6151,"mjpc":112.4669,"ext":96.8195,"ipc":40.4516,"ipf":268.7262,"ml":3.4489,"pd":0.9099},{"d":"2026-03-18","tc":5842.11,"fib":15.6224,"pol":16.3624,"ccs":14.859,"tch":243.4212,"pi":93.1271,"fme":77.9002,"bpc":28.4183,"ppb":1.7241,"mpb":42.6722,"mjpc":112.219,"ext":97.0056,"ipc":40.6373,"ipf":260.123,"ml":3.1362,"pd":0.8341},{"d":"2026-03-19","tc":4889.01,"fib":15.978,"pol":16.1103,"ccs":14.4174,"tch":238.4883,"pi":92.8826,"fme":78.9413,"bpc":29.3996,"ppb":1.6823,"mpb":43.22,"mjpc":111.6455,"ext":96.93,"ipc":41.0452,"ipf":256.8853,"ml":3.0954,"pd":1.0105},{"d":"2026-03-20","tc":5541.18,"fib":15.8978,"pol":15.8606,"ccs":14.167,"tch":230.8825,"pi":92.9078,"fme":77.1089,"bpc":29.0235,"ppb":1.5416,"mpb":42.9933,"mjpc":113.6018,"ext":97.1791,"ipc":42.6253,"ipf":268.1204,"ml":2.8143,"pd":0.6567},{"d":"2026-03-21","tc":4485.02,"fib":16.0194,"pol":15.7773,"ccs":14.1549,"tch":234.001,"pi":93.1507,"fme":79.3796,"bpc":29.3383,"ppb":1.8394,"mpb":42.8772,"mjpc":109.6005,"ext":96.5796,"ipc":38.9388,"ipf":243.0736,"ml":3.3687,"pd":1.4133},{"d":"2026-03-22","tc":4981.82,"fib":16.2063,"pol":16.1935,"ccs":14.7302,"tch":227.3074,"pi":93.1507,"fme":79.7161,"bpc":30.0245,"ppb":1.8803,"mpb":43.5087,"mjpc":110.7242,"ext":96.5136,"ipc":40.7487,"ipf":251.4383,"ml":3.4836,"pd":0.9526},{"d":"2026-03-23","tc":5101.56,"fib":15.8507,"pol":15.9649,"ccs":14.4936,"tch":214.8025,"pi":92.6471,"fme":79.856,"bpc":29.9241,"ppb":1.8787,"mpb":44.5283,"mjpc":111.549,"ext":96.4787,"ipc":41.4731,"ipf":261.6483,"ml":3.5467,"pd":0.9643},{"d":"2026-03-24","tc":5158.91,"fib":16.1833,"pol":16.1545,"ccs":14.526,"tch":214.9546,"pi":93.1507,"fme":80.4732,"bpc":31.5602,"ppb":1.8683,"mpb":46.2312,"mjpc":113.8871,"ext":96.3499,"ipc":45.4473,"ipf":280.8278,"ml":3.6436,"pd":1.2334},{"d":"2026-03-25","tc":4351.8,"fib":16.0631,"pol":16.0843,"ccs":14.4825,"tch":198.8637,"pi":93.1507,"fme":77.6814,"bpc":30.5671,"ppb":1.7463,"mpb":45.1048,"mjpc":114.6965,"ext":96.6812,"ipc":45.2637,"ipf":281.7865,"ml":3.3231,"pd":0.8987},{"d":"2026-03-26","tc":4289.15,"fib":15.7902,"pol":15.7503,"ccs":13.9553,"tch":214.4575,"pi":93.1507,"fme":79.5536,"bpc":31.6571,"ppb":1.9816,"mpb":47.4692,"mjpc":115.5432,"ext":96.017,"ipc":47.2003,"ipf":298.9205,"ml":3.9729,"pd":0.9518},{"d":"2026-03-27","tc":3941.76,"fib":15.9612,"pol":15.8192,"ccs":14.1356,"tch":207.4611,"pi":93.3555,"fme":78.0397,"bpc":33.8461,"ppb":1.9623,"mpb":50.2064,"mjpc":115.6061,"ext":95.8016,"ipc":49.4521,"ipf":309.8272,"ml":4.161,"pd":1.0174},{"d":"2026-03-28","tc":2393.09,"fib":15.6356,"pol":15.1997,"ccs":13.4697,"tch":202.233,"pi":93.1601,"fme":82.2938,"bpc":29.7316,"ppb":1.8794,"mpb":44.85,"mjpc":115.963,"ext":96.3239,"ipc":45.6946,"ipf":292.247,"ml":3.5737,"pd":0.921},{"d":"2026-03-29","tc":2752.92,"fib":15.7994,"pol":16.372,"ccs":14.6298,"tch":205.1866,"pi":93.1507,"fme":76.0999,"bpc":30.1273,"ppb":1.9407,"mpb":44.9657,"mjpc":120.4153,"ext":96.4288,"ipc":50.5426,"ipf":319.9024,"ml":3.7006,"pd":0.5411},{"d":"2026-03-30","tc":2440.67,"fib":15.844,"pol":16.7543,"ccs":14.9735,"tch":195.2536,"pi":93.5691,"fme":79.7467,"bpc":30.8664,"ppb":1.8359,"mpb":46.2067,"mjpc":117.5171,"ext":96.6177,"ipc":48.3835,"ipf":305.3749,"ml":3.5766,"pd":1.3009},{"d":"2026-03-31","tc":2652.39,"fib":15.436,"pol":16.218,"ccs":14.3571,"tch":189.4564,"pi":92.9078,"fme":77.9192,"bpc":31.1159,"ppb":1.9659,"mpb":47.3742,"mjpc":118.8616,"ext":96.2281,"ipc":49.9775,"ipf":323.7723,"ml":3.963,"pd":1.1463},{"d":"2026-04-01","tc":1897.61,"fib":15.1033,"pol":15.898,"ccs":13.6333,"tch":188.1927,"pi":90.9366,"fme":82.6207,"bpc":29.8121,"ppb":1.9421,"mpb":46.4845,"mjpc":115.3312,"ext":96.3582,"ipc":45.1433,"ipf":298.8973,"ml":3.8334,"pd":0.9969},{"d":"2026-04-02","tc":1761.46,"fib":14.4948,"pol":16.096,"ccs":13.8399,"tch":187.0577,"pi":90.23,"fme":82.6046,"bpc":29.1647,"ppb":1.8874,"mpb":47.71,"mjpc":117.5161,"ext":96.5802,"ipc":46.6808,"ipf":322.0526,"ml":3.7976,"pd":1.0781},{"d":"2026-04-03","tc":710.2,"fib":14.0723,"pol":16.1758,"ccs":13.9328,"tch":39.0936,"pi":90.3846,"fme":77.2419,"bpc":27.4189,"ppb":1.827,"mpb":45.82,"mjpc":125.147,"ext":96.9031,"ipc":52.5659,"ipf":373.5403,"ml":3.5598,"pd":1.199}];
+const CLAR_ALL = [{"d":"2025-12-10","cj_ph":8.8,"cj_brix":12.28,"cj_pol":9.976,"cj_po4":28.0,"cj_color":21455.0,"cj_turb":22.9,"lime_ph":9.9,"mf_ph":10.47,"mf_brix":11.28,"mf_pol":6.9573,"mj_ph":5.53,"cj_pty":81.2378},{"d":"2025-12-11","cj_ph":7.965,"cj_brix":13.1433,"cj_pol":10.6853,"cj_po4":35.0,"cj_color":17490.7749,"cj_turb":21.4667,"lime_ph":9.055,"mf_ph":7.7467,"mf_brix":12.81,"mf_pol":10.1779,"mj_ph":5.455,"cj_pty":81.2985},{"d":"2025-12-12","cj_ph":7.31,"cj_brix":13.9933,"cj_pol":10.9093,"cj_po4":12.5,"cj_color":15481.0,"cj_turb":16.1,"lime_ph":7.88,"mf_ph":6.7933,"mf_brix":11.426,"mf_pol":8.2853,"mj_ph":5.2033,"cj_pty":77.9609},{"d":"2025-12-13","cj_ph":7.1367,"cj_brix":14.2567,"cj_pol":11.5789,"cj_po4":57.5,"cj_color":16236.1624,"cj_turb":14.6333,"lime_ph":8.5033,"mf_ph":7.1667,"mf_brix":11.1897,"mf_pol":8.1403,"mj_ph":5.15,"cj_pty":81.2173},{"d":"2025-12-14","cj_ph":7.6833,"cj_brix":14.7567,"cj_pol":11.9826,"cj_po4":40.0,"cj_color":11453.0,"cj_turb":13.3,"lime_ph":8.0333,"mf_ph":7.67,"mf_brix":13.99,"mf_pol":10.0527,"mj_ph":5.48,"cj_pty":81.2011},{"d":"2025-12-15","cj_ph":7.54,"cj_brix":14.63,"cj_pol":12.1832,"cj_po4":40.0,"cj_color":14623.5221,"cj_turb":15.8333,"lime_ph":8.2867,"mf_ph":6.5933,"mf_brix":15.0617,"mf_pol":11.318,"mj_ph":5.4767,"cj_pty":83.2755},{"d":"2025-12-16","cj_ph":7.4233,"cj_brix":14.6703,"cj_pol":11.7291,"cj_po4":50.0,"cj_color":14276.2284,"cj_turb":12.5667,"lime_ph":7.78,"mf_ph":6.5733,"mf_brix":12.0687,"mf_pol":8.2198,"mj_ph":5.1467,"cj_pty":79.9513},{"d":"2025-12-17","cj_ph":7.4433,"cj_brix":14.4033,"cj_pol":11.6293,"cj_po4":17.5,"cj_color":12183.3534,"cj_turb":16.5667,"lime_ph":8.0767,"mf_ph":6.21,"mf_brix":11.168,"mf_pol":7.8162,"mj_ph":5.3033,"cj_pty":80.7405},{"d":"2025-12-18","cj_ph":7.53,"cj_brix":14.9033,"cj_pol":12.2617,"cj_po4":62.5,"cj_color":11090.573,"cj_turb":13.9333,"lime_ph":7.5233,"mf_ph":6.6567,"mf_brix":11.3707,"mf_pol":8.5911,"mj_ph":5.31,"cj_pty":82.2751},{"d":"2025-12-19","cj_ph":7.1,"cj_brix":15.105,"cj_pol":12.849,"cj_po4":null,"cj_color":null,"cj_turb":17.8,"lime_ph":7.62,"mf_ph":5.96,"mf_brix":14.31,"mf_pol":10.4998,"mj_ph":5.31,"cj_pty":85.0645},{"d":"2025-12-20","cj_ph":7.1333,"cj_brix":15.7267,"cj_pol":12.7035,"cj_po4":60.0,"cj_color":11640.5308,"cj_turb":13.8,"lime_ph":7.5667,"mf_ph":6.7533,"mf_brix":12.49,"mf_pol":7.9853,"mj_ph":5.36,"cj_pty":80.7766},{"d":"2025-12-21","cj_ph":7.1567,"cj_brix":14.904,"cj_pol":11.6029,"cj_po4":112.5,"cj_color":17726.3969,"cj_turb":17.4333,"lime_ph":7.5667,"mf_ph":6.3467,"mf_brix":14.2257,"mf_pol":10.2568,"mj_ph":5.39,"cj_pty":77.8509},{"d":"2025-12-22","cj_ph":6.89,"cj_brix":15.977,"cj_pol":13.051,"cj_po4":115.0,"cj_color":16135.0,"cj_turb":15.4,"lime_ph":6.93,"mf_ph":6.16,"mf_brix":16.98,"mf_pol":12.0178,"mj_ph":null,"cj_pty":81.6862},{"d":"2025-12-23","cj_ph":7.16,"cj_brix":16.012,"cj_pol":12.922,"cj_po4":null,"cj_color":null,"cj_turb":28.1,"lime_ph":8.02,"mf_ph":8.82,"mf_brix":13.91,"mf_pol":9.4945,"mj_ph":5.33,"cj_pty":80.702},{"d":"2025-12-24","cj_ph":7.895,"cj_brix":15.38,"cj_pol":12.1349,"cj_po4":122.5,"cj_color":12029.5203,"cj_turb":20.4,"lime_ph":6.785,"mf_ph":7.19,"mf_brix":14.48,"mf_pol":11.1477,"mj_ph":5.275,"cj_pty":78.9005},{"d":"2025-12-25","cj_ph":7.5933,"cj_brix":15.8977,"cj_pol":12.5633,"cj_po4":127.5,"cj_color":12401.8838,"cj_turb":16.8333,"lime_ph":7.38,"mf_ph":6.7933,"mf_brix":12.9633,"mf_pol":9.4653,"mj_ph":5.1167,"cj_pty":79.0259},{"d":"2025-12-26","cj_ph":7.5267,"cj_brix":15.9573,"cj_pol":12.6775,"cj_po4":122.5,"cj_color":10120.1479,"cj_turb":14.7333,"lime_ph":7.26,"mf_ph":6.3633,"mf_brix":12.9567,"mf_pol":9.6021,"mj_ph":5.32,"cj_pty":79.4464},{"d":"2025-12-27","cj_ph":7.6833,"cj_brix":15.4987,"cj_pol":12.443,"cj_po4":37.5,"cj_color":9301.0753,"cj_turb":15.1333,"lime_ph":7.9167,"mf_ph":6.4967,"mf_brix":11.4333,"mf_pol":8.5103,"mj_ph":5.3667,"cj_pty":80.2842},{"d":"2025-12-28","cj_ph":7.35,"cj_brix":15.691,"cj_pol":12.5593,"cj_po4":87.5,"cj_color":13064.5161,"cj_turb":22.1333,"lime_ph":7.32,"mf_ph":7.11,"mf_brix":13.4893,"mf_pol":10.4456,"mj_ph":5.405,"cj_pty":80.0414},{"d":"2025-12-29","cj_ph":7.18,"cj_brix":15.6173,"cj_pol":12.5943,"cj_po4":37.5,"cj_color":16483.5165,"cj_turb":14.3667,"lime_ph":7.4033,"mf_ph":6.48,"mf_brix":14.085,"mf_pol":10.4576,"mj_ph":5.4167,"cj_pty":80.6433},{"d":"2025-12-30","cj_ph":7.34,"cj_brix":16.535,"cj_pol":12.791,"cj_po4":40.0,"cj_color":13763.4409,"cj_turb":14.45,"lime_ph":7.935,"mf_ph":6.395,"mf_brix":12.934,"mf_pol":10.0372,"mj_ph":5.45,"cj_pty":77.3571},{"d":"2026-01-04","cj_ph":8.0167,"cj_brix":15.3963,"cj_pol":12.0148,"cj_po4":57.5,"cj_color":18476.407,"cj_turb":25.1333,"lime_ph":8.5333,"mf_ph":7.17,"mf_brix":15.7233,"mf_pol":10.8869,"mj_ph":5.45,"cj_pty":78.0369},{"d":"2026-01-05","cj_ph":7.95,"cj_brix":14.22,"cj_pol":11.4169,"cj_po4":47.5,"cj_color":14836.2235,"cj_turb":18.4,"lime_ph":8.5667,"mf_ph":7.8133,"mf_brix":13.3867,"mf_pol":10.0067,"mj_ph":5.4167,"cj_pty":80.2876},{"d":"2026-01-06","cj_ph":8.39,"cj_brix":13.3333,"cj_pol":10.8894,"cj_po4":12.5,"cj_color":16309.9631,"cj_turb":16.7,"lime_ph":8.6533,"mf_ph":7.0333,"mf_brix":11.2013,"mf_pol":8.6082,"mj_ph":5.4733,"cj_pty":81.6707},{"d":"2026-01-07","cj_ph":8.43,"cj_brix":14.34,"cj_pol":11.5454,"cj_po4":47.5,"cj_color":11263.7363,"cj_turb":24.6,"lime_ph":8.7,"mf_ph":7.08,"mf_brix":12.79,"mf_pol":9.4303,"mj_ph":5.53,"cj_pty":80.5119},{"d":"2026-01-08","cj_ph":7.52,"cj_brix":14.73,"cj_pol":12.102,"cj_po4":57.5,"cj_color":11512.1344,"cj_turb":12.4,"lime_ph":7.24,"mf_ph":6.8,"mf_brix":10.133,"mf_pol":7.8735,"mj_ph":5.53,"cj_pty":82.1589},{"d":"2026-01-09","cj_ph":7.2633,"cj_brix":15.6357,"cj_pol":13.213,"cj_po4":67.5,"cj_color":9894.2128,"cj_turb":9.8667,"lime_ph":7.2633,"mf_ph":6.83,"mf_brix":14.669,"mf_pol":11.455,"mj_ph":5.4133,"cj_pty":84.5053},{"d":"2026-01-10","cj_ph":7.42,"cj_brix":14.906,"cj_pol":12.9523,"cj_po4":285.0,"cj_color":13133.8321,"cj_turb":11.2333,"lime_ph":7.75,"mf_ph":6.83,"mf_brix":12.1433,"mf_pol":9.9254,"mj_ph":5.42,"cj_pty":86.8932},{"d":"2026-01-11","cj_ph":7.3933,"cj_brix":16.8067,"cj_pol":13.9501,"cj_po4":17.5,"cj_color":11942.0989,"cj_turb":12.1,"lime_ph":7.87,"mf_ph":6.6633,"mf_brix":13.27,"mf_pol":10.6984,"mj_ph":5.4467,"cj_pty":83.0032},{"d":"2026-01-12","cj_ph":7.37,"cj_brix":16.53,"cj_pol":14.486,"cj_po4":52.5,"cj_color":10906.0,"cj_turb":9.9,"lime_ph":7.595,"mf_ph":6.72,"mf_brix":15.6063,"mf_pol":13.0373,"mj_ph":5.37,"cj_pty":87.6346},{"d":"2026-01-13","cj_ph":7.2433,"cj_brix":15.985,"cj_pol":13.776,"cj_po4":17.5,"cj_color":11829.7402,"cj_turb":10.5,"lime_ph":7.6933,"mf_ph":6.8667,"mf_brix":15.4467,"mf_pol":12.4886,"mj_ph":5.3633,"cj_pty":86.1808},{"d":"2026-01-14","cj_ph":7.1533,"cj_brix":15.07,"cj_pol":12.615,"cj_po4":null,"cj_color":null,"cj_turb":8.75,"lime_ph":7.5167,"mf_ph":6.6633,"mf_brix":10.407,"mf_pol":8.5049,"mj_ph":5.33,"cj_pty":83.7094},{"d":"2026-01-15","cj_ph":7.1067,"cj_brix":15.23,"cj_pol":13.2059,"cj_po4":67.5,"cj_color":10413.3961,"cj_turb":11.2,"lime_ph":7.6833,"mf_ph":6.5667,"mf_brix":12.7437,"mf_pol":10.4051,"mj_ph":5.3367,"cj_pty":86.7098},{"d":"2026-01-16","cj_ph":7.26,"cj_brix":13.365,"cj_pol":11.3585,"cj_po4":65.0,"cj_color":12882.5623,"cj_turb":8.55,"lime_ph":7.5,"mf_ph":6.54,"mf_brix":11.974,"mf_pol":9.7932,"mj_ph":5.3267,"cj_pty":84.9869},{"d":"2026-01-17","cj_ph":7.0667,"cj_brix":15.2167,"cj_pol":12.9375,"cj_po4":62.5,"cj_color":13114.7541,"cj_turb":11.8667,"lime_ph":7.62,"mf_ph":6.485,"mf_brix":11.7503,"mf_pol":9.2113,"mj_ph":5.3025,"cj_pty":85.0217},{"d":"2026-01-18","cj_ph":7.21,"cj_brix":16.2127,"cj_pol":13.6517,"cj_po4":25.0,"cj_color":11768.1499,"cj_turb":7.9333,"lime_ph":7.62,"mf_ph":6.61,"mf_brix":13.2887,"mf_pol":10.5867,"mj_ph":5.2933,"cj_pty":84.2037},{"d":"2026-01-19","cj_ph":7.14,"cj_brix":16.8533,"cj_pol":14.262,"cj_po4":27.5,"cj_color":12493.0901,"cj_turb":9.9333,"lime_ph":7.5567,"mf_ph":6.6433,"mf_brix":15.2837,"mf_pol":11.6815,"mj_ph":5.37,"cj_pty":84.6244},{"d":"2026-01-20","cj_ph":7.2867,"cj_brix":16.6833,"cj_pol":14.3625,"cj_po4":25.0,"cj_color":9342.178,"cj_turb":9.0333,"lime_ph":7.9367,"mf_ph":6.6067,"mf_brix":15.4967,"mf_pol":12.8989,"mj_ph":5.2567,"cj_pty":86.0891},{"d":"2026-01-21","cj_ph":7.3467,"cj_brix":16.98,"cj_pol":14.6463,"cj_po4":32.5,"cj_color":13817.3302,"cj_turb":6.9667,"lime_ph":7.6667,"mf_ph":6.7433,"mf_brix":14.9,"mf_pol":11.6692,"mj_ph":5.28,"cj_pty":86.2562},{"d":"2026-01-22","cj_ph":7.1467,"cj_brix":16.5767,"cj_pol":14.0987,"cj_po4":65.0,"cj_color":10139.165,"cj_turb":13.4333,"lime_ph":7.6233,"mf_ph":6.58,"mf_brix":14.717,"mf_pol":10.895,"mj_ph":5.23,"cj_pty":85.0513},{"d":"2026-01-23","cj_ph":7.2933,"cj_brix":16.387,"cj_pol":13.7757,"cj_po4":30.0,"cj_color":10171.3654,"cj_turb":9.4667,"lime_ph":7.79,"mf_ph":6.7567,"mf_brix":13.7167,"mf_pol":11.3463,"mj_ph":5.3267,"cj_pty":84.0648},{"d":"2026-01-24","cj_ph":7.43,"cj_brix":17.0133,"cj_pol":14.31,"cj_po4":55.0,"cj_color":12470.726,"cj_turb":10.8333,"lime_ph":7.7267,"mf_ph":7.2333,"mf_brix":13.7833,"mf_pol":10.9833,"mj_ph":5.32,"cj_pty":84.1107},{"d":"2026-01-25","cj_ph":7.6333,"cj_brix":16.6167,"cj_pol":13.7299,"cj_po4":60.0,"cj_color":13266.9983,"cj_turb":18.4667,"lime_ph":7.99,"mf_ph":7.0933,"mf_brix":15.1243,"mf_pol":11.9389,"mj_ph":5.3133,"cj_pty":82.6271},{"d":"2026-01-26","cj_ph":7.0833,"cj_brix":16.7467,"cj_pol":14.2247,"cj_po4":null,"cj_color":10116.0,"cj_turb":11.8333,"lime_ph":7.4767,"mf_ph":6.7367,"mf_brix":14.764,"mf_pol":11.8769,"mj_ph":5.33,"cj_pty":84.9403},{"d":"2026-01-27","cj_ph":7.0067,"cj_brix":16.6467,"cj_pol":14.5263,"cj_po4":25.0,"cj_color":10392.482,"cj_turb":8.1667,"lime_ph":7.6133,"mf_ph":6.6,"mf_brix":14.28,"mf_pol":11.6788,"mj_ph":5.28,"cj_pty":87.2623},{"d":"2026-01-28","cj_ph":7.15,"cj_brix":16.7233,"cj_pol":14.4492,"cj_po4":27.5,"cj_color":12769.4859,"cj_turb":9.2333,"lime_ph":7.58,"mf_ph":6.64,"mf_brix":15.4867,"mf_pol":12.4494,"mj_ph":5.33,"cj_pty":86.4016},{"d":"2026-01-29","cj_ph":7.1567,"cj_brix":16.84,"cj_pol":14.3444,"cj_po4":32.5,"cj_color":11829.7402,"cj_turb":10.1667,"lime_ph":7.54,"mf_ph":6.1,"mf_brix":14.42,"mf_pol":11.6228,"mj_ph":5.3233,"cj_pty":85.1805},{"d":"2026-01-30","cj_ph":7.4833,"cj_brix":16.6767,"cj_pol":14.3047,"cj_po4":27.5,"cj_color":11686.587,"cj_turb":8.2,"lime_ph":7.5967,"mf_ph":6.3833,"mf_brix":15.2933,"mf_pol":11.9733,"mj_ph":5.31,"cj_pty":85.7766},{"d":"2026-01-31","cj_ph":7.3567,"cj_brix":16.7467,"cj_pol":14.2839,"cj_po4":30.0,"cj_color":11276.9486,"cj_turb":9.6,"lime_ph":7.5967,"mf_ph":6.31,"mf_brix":15.6553,"mf_pol":12.2275,"mj_ph":5.3533,"cj_pty":85.2938},{"d":"2026-02-01","cj_ph":7.13,"cj_brix":16.9567,"cj_pol":14.1772,"cj_po4":32.5,"cj_color":10714.2857,"cj_turb":10.4333,"lime_ph":7.8167,"mf_ph":6.2467,"mf_brix":16.3867,"mf_pol":12.8748,"mj_ph":5.3025,"cj_pty":83.6082},{"d":"2026-02-02","cj_ph":7.0,"cj_brix":16.7467,"cj_pol":14.1051,"cj_po4":35.0,"cj_color":10772.8337,"cj_turb":8.1667,"lime_ph":7.57,"mf_ph":6.34,"mf_brix":15.0893,"mf_pol":11.6046,"mj_ph":5.33,"cj_pty":84.2261},{"d":"2026-02-03","cj_ph":6.67,"cj_brix":16.94,"cj_pol":14.314,"cj_po4":null,"cj_color":null,"cj_turb":9.8,"lime_ph":7.11,"mf_ph":6.17,"mf_brix":15.535,"mf_pol":12.4949,"mj_ph":null,"cj_pty":84.4982},{"d":"2026-02-05","cj_ph":7.1,"cj_brix":16.26,"cj_pol":13.8652,"cj_po4":252.5,"cj_color":10230.5322,"cj_turb":15.4,"lime_ph":8.035,"mf_ph":6.33,"mf_brix":14.062,"mf_pol":11.0992,"mj_ph":5.2,"cj_pty":85.2718},{"d":"2026-02-06","cj_ph":7.1067,"cj_brix":16.7233,"cj_pol":14.588,"cj_po4":47.5,"cj_color":12327.2526,"cj_turb":9.5333,"lime_ph":7.5333,"mf_ph":6.49,"mf_brix":16.6033,"mf_pol":13.0919,"mj_ph":5.2667,"cj_pty":87.2316},{"d":"2026-02-07","cj_ph":6.9267,"cj_brix":17.2233,"cj_pol":14.5593,"cj_po4":42.5,"cj_color":12714.2067,"cj_turb":9.4667,"lime_ph":7.6367,"mf_ph":6.32,"mf_brix":16.216,"mf_pol":12.7055,"mj_ph":5.3267,"cj_pty":84.5326},{"d":"2026-02-08","cj_ph":7.2767,"cj_brix":16.81,"cj_pol":14.0767,"cj_po4":27.5,"cj_color":12470.726,"cj_turb":9.4333,"lime_ph":7.5767,"mf_ph":6.4233,"mf_brix":16.215,"mf_pol":12.7669,"mj_ph":5.2867,"cj_pty":83.74},{"d":"2026-02-09","cj_ph":7.09,"cj_brix":17.11,"cj_pol":14.6473,"cj_po4":30.0,"cj_color":12327.2526,"cj_turb":9.1333,"lime_ph":7.3033,"mf_ph":6.41,"mf_brix":16.3103,"mf_pol":12.8385,"mj_ph":5.2133,"cj_pty":85.6067},{"d":"2026-02-10","cj_ph":6.9933,"cj_brix":16.95,"cj_pol":14.502,"cj_po4":65.0,"cj_color":11930.9262,"cj_turb":9.8667,"lime_ph":7.5467,"mf_ph":6.41,"mf_brix":15.7227,"mf_pol":12.5103,"mj_ph":5.31,"cj_pty":85.5575},{"d":"2026-02-11","cj_ph":6.81,"cj_brix":17.18,"cj_pol":14.8847,"cj_po4":60.0,"cj_color":11829.7402,"cj_turb":9.6,"lime_ph":7.5,"mf_ph":6.3933,"mf_brix":16.2113,"mf_pol":12.6374,"mj_ph":5.3033,"cj_pty":86.6397},{"d":"2026-02-12","cj_ph":7.1733,"cj_brix":16.8433,"cj_pol":14.5647,"cj_po4":70.0,"cj_color":11616.9545,"cj_turb":9.7667,"lime_ph":7.4033,"mf_ph":6.43,"mf_brix":15.3803,"mf_pol":12.143,"mj_ph":5.3467,"cj_pty":86.4718},{"d":"2026-02-13","cj_ph":7.3533,"cj_brix":17.0533,"cj_pol":14.764,"cj_po4":72.5,"cj_color":13377.5567,"cj_turb":9.6333,"lime_ph":7.47,"mf_ph":6.54,"mf_brix":15.0227,"mf_pol":12.0662,"mj_ph":5.3067,"cj_pty":86.5756},{"d":"2026-02-14","cj_ph":6.8667,"cj_brix":17.1967,"cj_pol":14.9753,"cj_po4":72.5,"cj_color":12050.8568,"cj_turb":10.2667,"lime_ph":7.5833,"mf_ph":6.41,"mf_brix":16.0837,"mf_pol":12.9481,"mj_ph":5.2733,"cj_pty":87.0824},{"d":"2026-02-15","cj_ph":6.8733,"cj_brix":17.0267,"cj_pol":14.5203,"cj_po4":62.5,"cj_color":11426.9471,"cj_turb":11.0667,"lime_ph":7.4667,"mf_ph":6.5033,"mf_brix":15.4853,"mf_pol":12.5394,"mj_ph":5.3167,"cj_pty":85.2796},{"d":"2026-02-16","cj_ph":6.9167,"cj_brix":17.1133,"cj_pol":14.6293,"cj_po4":60.0,"cj_color":9508.0155,"cj_turb":9.0,"lime_ph":7.7233,"mf_ph":6.69,"mf_brix":13.9793,"mf_pol":11.361,"mj_ph":5.4867,"cj_pty":85.485},{"d":"2026-02-17","cj_ph":7.04,"cj_brix":16.47,"cj_pol":14.1748,"cj_po4":46.0,"cj_color":13678.6189,"cj_turb":10.6333,"lime_ph":7.4133,"mf_ph":6.8067,"mf_brix":14.0147,"mf_pol":11.2377,"mj_ph":5.4567,"cj_pty":86.0644},{"d":"2026-02-18","cj_ph":7.15,"cj_brix":16.8467,"cj_pol":14.3129,"cj_po4":30.0,"cj_color":14001.2446,"cj_turb":8.4333,"lime_ph":7.8167,"mf_ph":6.59,"mf_brix":12.8187,"mf_pol":10.4071,"mj_ph":5.495,"cj_pty":84.9597},{"d":"2026-02-19","cj_ph":7.07,"cj_brix":16.9467,"cj_pol":14.599,"cj_po4":32.5,"cj_color":11124.1218,"cj_turb":8.9333,"lime_ph":7.33,"mf_ph":6.6733,"mf_brix":15.1157,"mf_pol":11.8816,"mj_ph":5.5,"cj_pty":86.1466},{"d":"2026-02-20","cj_ph":7.27,"cj_brix":16.8467,"cj_pol":14.4903,"cj_po4":40.0,"cj_color":15809.8397,"cj_turb":9.2333,"lime_ph":7.87,"mf_ph":6.6,"mf_brix":14.1573,"mf_pol":11.4214,"mj_ph":5.4875,"cj_pty":86.0127},{"d":"2026-02-21","cj_ph":6.9767,"cj_brix":16.46,"cj_pol":14.3915,"cj_po4":42.5,"cj_color":10945.2736,"cj_turb":10.15,"lime_ph":7.2067,"mf_ph":6.76,"mf_brix":12.824,"mf_pol":10.4725,"mj_ph":5.4467,"cj_pty":87.4332},{"d":"2026-02-22","cj_ph":7.01,"cj_brix":16.1085,"cj_pol":13.2707,"cj_po4":95.0,"cj_color":10558.3195,"cj_turb":9.3,"lime_ph":7.835,"mf_ph":6.94,"mf_brix":14.63,"mf_pol":10.5542,"mj_ph":5.65,"cj_pty":82.3832},{"d":"2026-02-24","cj_ph":7.5467,"cj_brix":16.7733,"cj_pol":13.8283,"cj_po4":50.0,"cj_color":11608.6235,"cj_turb":12.4,"lime_ph":7.64,"mf_ph":6.6467,"mf_brix":15.4267,"mf_pol":12.2128,"mj_ph":5.4933,"cj_pty":82.4423},{"d":"2026-02-25","cj_ph":7.1233,"cj_brix":16.2503,"cj_pol":13.4309,"cj_po4":117.5,"cj_color":11774.461,"cj_turb":11.3333,"lime_ph":7.7067,"mf_ph":6.6167,"mf_brix":14.8227,"mf_pol":11.4743,"mj_ph":5.45,"cj_pty":82.6502},{"d":"2026-02-26","cj_ph":6.75,"cj_brix":16.72,"cj_pol":14.158,"cj_po4":null,"cj_color":null,"cj_turb":11.1,"lime_ph":6.81,"mf_ph":6.45,"mf_brix":13.53,"mf_pol":10.7889,"mj_ph":5.41,"cj_pty":84.677},{"d":"2026-02-27","cj_ph":6.79,"cj_brix":16.63,"cj_pol":13.5164,"cj_po4":92.5,"cj_color":7296.8491,"cj_turb":11.5,"lime_ph":7.355,"mf_ph":6.45,"mf_brix":13.59,"mf_pol":10.1413,"mj_ph":5.42,"cj_pty":81.2772},{"d":"2026-02-28","cj_ph":7.08,"cj_brix":16.226,"cj_pol":13.393,"cj_po4":null,"cj_color":null,"cj_turb":12.9,"lime_ph":7.4267,"mf_ph":6.3967,"mf_brix":14.26,"mf_pol":11.0543,"mj_ph":5.47,"cj_pty":82.5404},{"d":"2026-03-01","cj_ph":7.1,"cj_brix":16.7267,"cj_pol":14.0127,"cj_po4":40.0,"cj_color":12295.082,"cj_turb":11.6667,"lime_ph":7.88,"mf_ph":6.4567,"mf_brix":14.3167,"mf_pol":11.0301,"mj_ph":5.62,"cj_pty":83.7744},{"d":"2026-03-02","cj_ph":7.27,"cj_brix":16.4803,"cj_pol":13.6973,"cj_po4":65.0,"cj_color":12161.4151,"cj_turb":11.2,"lime_ph":7.7233,"mf_ph":6.55,"mf_brix":13.7427,"mf_pol":10.5701,"mj_ph":5.7633,"cj_pty":83.1132},{"d":"2026-03-03","cj_ph":7.28,"cj_brix":16.2333,"cj_pol":13.672,"cj_po4":60.0,"cj_color":12295.082,"cj_turb":11.7667,"lime_ph":7.58,"mf_ph":7.07,"mf_brix":10.2667,"mf_pol":7.9416,"mj_ph":5.7933,"cj_pty":84.2219},{"d":"2026-03-04","cj_ph":7.0667,"cj_brix":16.43,"cj_pol":14.1257,"cj_po4":70.0,"cj_color":13690.1058,"cj_turb":11.1333,"lime_ph":7.63,"mf_ph":6.9033,"mf_brix":14.3433,"mf_pol":11.0861,"mj_ph":5.7767,"cj_pty":85.975},{"d":"2026-03-05","cj_ph":7.11,"cj_brix":16.1793,"cj_pol":13.6152,"cj_po4":77.5,"cj_color":12295.082,"cj_turb":11.2,"lime_ph":7.6567,"mf_ph":6.8033,"mf_brix":14.2237,"mf_pol":10.8965,"mj_ph":5.8167,"cj_pty":84.152},{"d":"2026-03-06","cj_ph":7.1767,"cj_brix":15.9813,"cj_pol":13.6207,"cj_po4":42.5,"cj_color":15920.398,"cj_turb":17.0333,"lime_ph":7.91,"mf_ph":6.5667,"mf_brix":11.677,"mf_pol":8.77,"mj_ph":5.76,"cj_pty":85.229},{"d":"2026-03-07","cj_ph":7.15,"cj_brix":16.2067,"cj_pol":14.4733,"cj_po4":65.0,"cj_color":12714.2067,"cj_turb":14.0,"lime_ph":7.43,"mf_ph":6.5733,"mf_brix":13.9587,"mf_pol":10.5938,"mj_ph":5.73,"cj_pty":89.3044},{"d":"2026-03-08","cj_ph":7.36,"cj_brix":16.3467,"cj_pol":14.3067,"cj_po4":27.5,"cj_color":9645.3018,"cj_turb":12.6,"lime_ph":7.6433,"mf_ph":6.9233,"mf_brix":13.87,"mf_pol":10.792,"mj_ph":5.7933,"cj_pty":87.5204},{"d":"2026-03-09","cj_ph":7.3367,"cj_brix":16.1157,"cj_pol":14.1417,"cj_po4":60.0,"cj_color":9543.3255,"cj_turb":11.4667,"lime_ph":7.8533,"mf_ph":6.6633,"mf_brix":11.1793,"mf_pol":8.8901,"mj_ph":5.7167,"cj_pty":87.7511},{"d":"2026-03-10","cj_ph":7.16,"cj_brix":16.619,"cj_pol":14.1127,"cj_po4":72.5,"cj_color":12383.323,"cj_turb":13.5333,"lime_ph":7.0467,"mf_ph":6.6367,"mf_brix":12.1283,"mf_pol":9.7164,"mj_ph":5.775,"cj_pty":84.9191},{"d":"2026-03-11","cj_ph":7.1967,"cj_brix":16.4833,"cj_pol":14.1871,"cj_po4":52.5,"cj_color":9777.5176,"cj_turb":10.9667,"lime_ph":7.1867,"mf_ph":6.5033,"mf_brix":13.9633,"mf_pol":11.1005,"mj_ph":5.7967,"cj_pty":86.0695},{"d":"2026-03-12","cj_ph":7.2567,"cj_brix":16.4767,"cj_pol":14.0306,"cj_po4":65.0,"cj_color":11885.0193,"cj_turb":12.5333,"lime_ph":7.8567,"mf_ph":6.6067,"mf_brix":13.1133,"mf_pol":10.112,"mj_ph":5.7633,"cj_pty":85.1542},{"d":"2026-03-13","cj_ph":7.2267,"cj_brix":16.4133,"cj_pol":14.1893,"cj_po4":42.5,"cj_color":9679.7153,"cj_turb":13.2667,"lime_ph":7.53,"mf_ph":7.1267,"mf_brix":14.8893,"mf_pol":11.7301,"mj_ph":5.7267,"cj_pty":86.45},{"d":"2026-03-14","cj_ph":7.38,"cj_brix":16.3413,"cj_pol":14.0964,"cj_po4":45.0,"cj_color":13764.5108,"cj_turb":12.7667,"lime_ph":7.9967,"mf_ph":6.9733,"mf_brix":13.029,"mf_pol":10.3007,"mj_ph":5.7633,"cj_pty":86.2624},{"d":"2026-03-15","cj_ph":7.1033,"cj_brix":16.145,"cj_pol":13.5599,"cj_po4":57.5,"cj_color":10908.0012,"cj_turb":11.8667,"lime_ph":7.8467,"mf_ph":6.9767,"mf_brix":13.85,"mf_pol":10.2221,"mj_ph":5.7467,"cj_pty":83.9882},{"d":"2026-03-16","cj_ph":7.2667,"cj_brix":16.387,"cj_pol":13.8348,"cj_po4":62.5,"cj_color":11768.1499,"cj_turb":11.6667,"lime_ph":7.6067,"mf_ph":6.7867,"mf_brix":11.953,"mf_pol":9.2695,"mj_ph":5.7033,"cj_pty":84.4255},{"d":"2026-03-17","cj_ph":7.48,"cj_brix":15.5473,"cj_pol":13.2363,"cj_po4":70.0,"cj_color":8840.7494,"cj_turb":12.5333,"lime_ph":7.3333,"mf_ph":6.6033,"mf_brix":12.5233,"mf_pol":9.1545,"mj_ph":5.7167,"cj_pty":85.1357},{"d":"2026-03-18","cj_ph":7.41,"cj_brix":16.3633,"cj_pol":14.1043,"cj_po4":77.5,"cj_color":9065.7822,"cj_turb":10.8333,"lime_ph":7.7467,"mf_ph":6.5367,"mf_brix":12.2633,"mf_pol":9.3349,"mj_ph":5.73,"cj_pty":86.1947},{"d":"2026-03-19","cj_ph":6.92,"cj_brix":16.1733,"cj_pol":13.705,"cj_po4":92.5,"cj_color":8844.6656,"cj_turb":11.0667,"lime_ph":7.34,"mf_ph":6.6233,"mf_brix":13.11,"mf_pol":9.2902,"mj_ph":5.7633,"cj_pty":84.7384},{"d":"2026-03-20","cj_ph":7.3633,"cj_brix":16.5057,"cj_pol":14.0117,"cj_po4":92.5,"cj_color":9176.3405,"cj_turb":11.9667,"lime_ph":7.8867,"mf_ph":6.7567,"mf_brix":13.3,"mf_pol":10.1185,"mj_ph":5.7633,"cj_pty":84.8901},{"d":"2026-03-21","cj_ph":7.39,"cj_brix":17.35,"cj_pol":13.5617,"cj_po4":97.5,"cj_color":12035.5835,"cj_turb":12.7667,"lime_ph":7.8433,"mf_ph":6.8933,"mf_brix":15.4167,"mf_pol":11.0656,"mj_ph":5.715,"cj_pty":78.1654},{"d":"2026-03-22","cj_ph":7.04,"cj_brix":16.1503,"cj_pol":13.4305,"cj_po4":42.5,"cj_color":12880.5621,"cj_turb":12.6333,"lime_ph":7.3967,"mf_ph":6.9267,"mf_brix":14.76,"mf_pol":10.994,"mj_ph":5.7733,"cj_pty":83.1594},{"d":"2026-03-23","cj_ph":7.24,"cj_brix":15.0747,"cj_pol":12.3351,"cj_po4":52.5,"cj_color":12445.5507,"cj_turb":13.7333,"lime_ph":7.78,"mf_ph":7.0167,"mf_brix":14.7157,"mf_pol":10.8447,"mj_ph":5.72,"cj_pty":81.8265},{"d":"2026-03-24","cj_ph":7.2133,"cj_brix":15.9033,"cj_pol":12.9124,"cj_po4":72.5,"cj_color":13944.2231,"cj_turb":16.8667,"lime_ph":7.3567,"mf_ph":7.17,"mf_brix":14.5133,"mf_pol":10.9002,"mj_ph":5.7567,"cj_pty":81.1932},{"d":"2026-03-25","cj_ph":7.0067,"cj_brix":16.015,"cj_pol":12.9152,"cj_po4":52.5,"cj_color":12161.4151,"cj_turb":15.1333,"lime_ph":7.54,"mf_ph":6.76,"mf_brix":14.4367,"mf_pol":11.0745,"mj_ph":5.715,"cj_pty":80.6444},{"d":"2026-03-26","cj_ph":7.0833,"cj_brix":15.3593,"cj_pol":12.4165,"cj_po4":67.5,"cj_color":12295.082,"cj_turb":15.4333,"lime_ph":7.35,"mf_ph":6.5067,"mf_brix":13.7503,"mf_pol":10.3081,"mj_ph":5.735,"cj_pty":80.8403},{"d":"2026-03-27","cj_ph":7.385,"cj_brix":14.655,"cj_pol":11.884,"cj_po4":40.0,"cj_color":12682.6029,"cj_turb":12.25,"lime_ph":7.69,"mf_ph":6.735,"mf_brix":10.9155,"mf_pol":8.0702,"mj_ph":5.77,"cj_pty":81.0918},{"d":"2026-03-28","cj_ph":7.13,"cj_brix":14.624,"cj_pol":11.601,"cj_po4":67.5,"cj_color":11608.6235,"cj_turb":16.4,"lime_ph":7.36,"mf_ph":6.85,"mf_brix":14.9135,"mf_pol":11.4281,"mj_ph":5.69,"cj_pty":79.3285},{"d":"2026-03-29","cj_ph":7.225,"cj_brix":15.3605,"cj_pol":11.996,"cj_po4":105.0,"cj_color":11885.5009,"cj_turb":15.75,"lime_ph":7.93,"mf_ph":6.28,"mf_brix":12.855,"mf_pol":9.3283,"mj_ph":5.685,"cj_pty":78.0964},{"d":"2026-03-30","cj_ph":7.23,"cj_brix":15.507,"cj_pol":12.335,"cj_po4":38.0,"cj_color":11952.0,"cj_turb":21.8,"lime_ph":8.18,"mf_ph":8.82,"mf_brix":12.02,"mf_pol":8.2998,"mj_ph":5.68,"cj_pty":79.5447},{"d":"2026-03-31","cj_ph":6.795,"cj_brix":15.3035,"cj_pol":12.0127,"cj_po4":70.0,"cj_color":11119.6319,"cj_turb":17.25,"lime_ph":7.74,"mf_ph":6.6,"mf_brix":12.12,"mf_pol":8.7081,"mj_ph":5.745,"cj_pty":78.4964},{"d":"2026-04-01","cj_ph":7.02,"cj_brix":16.6,"cj_pol":12.7456,"cj_po4":52.5,"cj_color":14312.3833,"cj_turb":19.5,"lime_ph":7.69,"mf_ph":6.4,"mf_brix":14.22,"mf_pol":9.9668,"mj_ph":5.73,"cj_pty":76.7807},{"d":"2026-04-02","cj_ph":6.77,"cj_brix":16.61,"cj_pol":12.4044,"cj_po4":67.5,"cj_color":10948.4778,"cj_turb":17.5,"lime_ph":7.39,"mf_ph":6.64,"mf_brix":14.83,"mf_pol":10.8777,"mj_ph":null,"cj_pty":74.6803},{"d":"2026-04-03","cj_ph":6.61,"cj_brix":15.814,"cj_pol":11.583,"cj_po4":62.5,"cj_color":13346.6135,"cj_turb":21.5,"lime_ph":7.04,"mf_ph":6.28,"mf_brix":16.02,"mf_pol":11.6105,"mj_ph":null,"cj_pty":73.2452}];
+const EVAP_ALL = [{"d":"2025-12-11","e1_brix":27.29,"e2_brix":25.687,"e3_brix":41.19,"e4_brix":50.588,"e5_brix":58.89,"e1_ph":7.16,"e2_ph":7.18,"e3_ph":7.04,"e4_ph":7.08,"e5_ph":7.16,"syrup_ph":7.1567},{"d":"2025-12-12","e1_brix":17.77,"e2_brix":21.07,"e3_brix":26.08,"e4_brix":32.38,"e5_brix":39.38,"e1_ph":7.91,"e2_ph":7.51,"e3_ph":6.71,"e4_ph":6.19,"e5_ph":6.09,"syrup_ph":7.1767},{"d":"2025-12-13","e1_brix":24.21,"e2_brix":28.72,"e3_brix":40.115,"e4_brix":48.72,"e5_brix":59.12,"e1_ph":7.44,"e2_ph":6.52,"e3_ph":6.26,"e4_ph":6.23,"e5_ph":6.52,"syrup_ph":6.7067},{"d":"2025-12-14","e1_brix":23.49,"e2_brix":29.5,"e3_brix":36.7,"e4_brix":45.804,"e5_brix":62.1,"e1_ph":8.04,"e2_ph":8.13,"e3_ph":7.98,"e4_ph":7.64,"e5_ph":6.18,"syrup_ph":7.0433},{"d":"2025-12-15","e1_brix":21.78,"e2_brix":29.99,"e3_brix":36.69,"e4_brix":39.29,"e5_brix":52.89,"e1_ph":8.1,"e2_ph":7.89,"e3_ph":7.71,"e4_ph":7.56,"e5_ph":6.73,"syrup_ph":7.24},{"d":"2025-12-16","e1_brix":20.207,"e2_brix":28.51,"e3_brix":36.41,"e4_brix":44.51,"e5_brix":61.71,"e1_ph":5.73,"e2_ph":5.71,"e3_ph":5.08,"e4_ph":6.01,"e5_ph":6.02,"syrup_ph":5.9333},{"d":"2025-12-17","e1_brix":28.2,"e2_brix":42.6,"e3_brix":60.404,"e4_brix":65.404,"e5_brix":67.0,"e1_ph":6.62,"e2_ph":6.14,"e3_ph":6.05,"e4_ph":6.17,"e5_ph":5.91,"syrup_ph":6.0567},{"d":"2025-12-18","e1_brix":25.701,"e2_brix":36.5,"e3_brix":50.204,"e4_brix":59.7,"e5_brix":69.3,"e1_ph":7.0,"e2_ph":6.54,"e3_ph":6.28,"e4_ph":6.29,"e5_ph":6.27,"syrup_ph":6.3733},{"d":"2025-12-19","e1_brix":25.401,"e2_brix":32.3,"e3_brix":45.504,"e4_brix":59.0,"e5_brix":69.0,"e1_ph":6.45,"e2_ph":6.3,"e3_ph":6.2,"e4_ph":6.14,"e5_ph":6.03,"syrup_ph":5.91},{"d":"2026-01-04","e1_brix":23.48,"e2_brix":28.99,"e3_brix":36.39,"e4_brix":43.39,"e5_brix":47.99,"e1_ph":8.64,"e2_ph":8.05,"e3_ph":8.89,"e4_ph":8.0,"e5_ph":7.14,"syrup_ph":7.06},{"d":"2026-01-05","e1_brix":24.11,"e2_brix":29.41,"e3_brix":39.51,"e4_brix":48.51,"e5_brix":58.51,"e1_ph":8.61,"e2_ph":8.46,"e3_ph":8.3,"e4_ph":8.22,"e5_ph":7.89,"syrup_ph":7.36},{"d":"2026-01-06","e1_brix":19.59,"e2_brix":27.2,"e3_brix":32.7,"e4_brix":41.8,"e5_brix":51.004,"e1_ph":8.28,"e2_ph":8.02,"e3_ph":7.81,"e4_ph":7.8,"e5_ph":7.69,"syrup_ph":7.1767},{"d":"2026-01-09","e1_brix":22.6,"e2_brix":33.8,"e3_brix":43.9,"e4_brix":55.1,"e5_brix":55.7,"e1_ph":6.4,"e2_ph":6.2,"e3_ph":6.11,"e4_ph":6.18,"e5_ph":6.43,"syrup_ph":6.54},{"d":"2026-01-10","e1_brix":23.2,"e2_brix":33.9,"e3_brix":46.6,"e4_brix":59.9,"e5_brix":68.8,"e1_ph":8.26,"e2_ph":8.09,"e3_ph":7.87,"e4_ph":7.66,"e5_ph":7.43,"syrup_ph":7.2367},{"d":"2026-01-11","e1_brix":27.13,"e2_brix":31.03,"e3_brix":41.056,"e4_brix":52.235,"e5_brix":64.681,"e1_ph":6.975,"e2_ph":6.925,"e3_ph":6.685,"e4_ph":6.56,"e5_ph":6.37,"syrup_ph":6.8033},{"d":"2026-01-12","e1_brix":35.904,"e2_brix":37.7,"e3_brix":48.9,"e4_brix":57.46,"e5_brix":68.654,"e1_ph":6.91,"e2_ph":6.845,"e3_ph":6.69,"e4_ph":6.58,"e5_ph":6.555,"syrup_ph":6.54},{"d":"2026-01-13","e1_brix":29.7,"e2_brix":37.95,"e3_brix":43.3,"e4_brix":52.0,"e5_brix":63.35,"e1_ph":6.665,"e2_ph":6.57,"e3_ph":6.55,"e4_ph":6.555,"e5_ph":6.365,"syrup_ph":6.2733},{"d":"2026-01-14","e1_brix":26.95,"e2_brix":35.05,"e3_brix":48.4,"e4_brix":59.65,"e5_brix":72.75,"e1_ph":6.67,"e2_ph":6.52,"e3_ph":6.405,"e4_ph":6.3,"e5_ph":6.265,"syrup_ph":6.23},{"d":"2026-01-15","e1_brix":23.55,"e2_brix":30.15,"e3_brix":42.455,"e4_brix":53.4,"e5_brix":64.55,"e1_ph":7.29,"e2_ph":7.005,"e3_ph":6.86,"e4_ph":6.795,"e5_ph":6.64,"syrup_ph":6.4267},{"d":"2026-01-16","e1_brix":25.35,"e2_brix":31.6,"e3_brix":41.15,"e4_brix":48.1,"e5_brix":57.0,"e1_ph":6.72,"e2_ph":6.695,"e3_ph":6.615,"e4_ph":6.59,"e5_ph":6.43,"syrup_ph":6.265},{"d":"2026-01-17","e1_brix":28.815,"e2_brix":32.015,"e3_brix":43.967,"e4_brix":52.165,"e5_brix":68.515,"e1_ph":6.41,"e2_ph":6.23,"e3_ph":6.17,"e4_ph":6.08,"e5_ph":5.945,"syrup_ph":6.28},{"d":"2026-01-18","e1_brix":31.805,"e2_brix":40.305,"e3_brix":50.87,"e4_brix":58.76,"e5_brix":63.857,"e1_ph":6.415,"e2_ph":6.215,"e3_ph":6.095,"e4_ph":6.035,"e5_ph":6.01,"syrup_ph":6.2433},{"d":"2026-01-19","e1_brix":30.024,"e2_brix":38.875,"e3_brix":48.38,"e4_brix":55.417,"e5_brix":63.125,"e1_ph":6.555,"e2_ph":6.39,"e3_ph":6.295,"e4_ph":6.255,"e5_ph":6.22,"syrup_ph":6.2933},{"d":"2026-01-20","e1_brix":27.805,"e2_brix":35.885,"e3_brix":48.14,"e4_brix":59.324,"e5_brix":64.18,"e1_ph":6.675,"e2_ph":6.645,"e3_ph":6.465,"e4_ph":6.36,"e5_ph":6.32,"syrup_ph":6.4},{"d":"2026-01-21","e1_brix":34.48,"e2_brix":38.876,"e3_brix":47.172,"e4_brix":58.175,"e5_brix":68.12,"e1_ph":8.265,"e2_ph":6.7,"e3_ph":6.615,"e4_ph":6.58,"e5_ph":6.375,"syrup_ph":6.2933},{"d":"2026-01-22","e1_brix":28.32,"e2_brix":36.91,"e3_brix":46.414,"e4_brix":56.618,"e5_brix":68.87,"e1_ph":6.32,"e2_ph":6.22,"e3_ph":6.125,"e4_ph":6.06,"e5_ph":5.93,"syrup_ph":6.2667},{"d":"2026-01-23","e1_brix":23.963,"e2_brix":31.93,"e3_brix":43.17,"e4_brix":53.626,"e5_brix":64.88,"e1_ph":6.86,"e2_ph":6.6,"e3_ph":6.44,"e4_ph":6.405,"e5_ph":6.315,"syrup_ph":6.5433},{"d":"2026-01-24","e1_brix":29.477,"e2_brix":34.835,"e3_brix":41.598,"e4_brix":51.145,"e5_brix":66.14,"e1_ph":6.695,"e2_ph":6.495,"e3_ph":6.395,"e4_ph":6.3,"e5_ph":6.37,"syrup_ph":6.7233},{"d":"2026-01-25","e1_brix":25.3,"e2_brix":33.56,"e3_brix":42.0,"e4_brix":50.155,"e5_brix":64.15,"e1_ph":8.41,"e2_ph":8.255,"e3_ph":8.09,"e4_ph":8.05,"e5_ph":7.84,"syrup_ph":7.18},{"d":"2026-01-26","e1_brix":25.365,"e2_brix":32.59,"e3_brix":41.58,"e4_brix":54.072,"e5_brix":69.314,"e1_ph":6.45,"e2_ph":6.375,"e3_ph":6.26,"e4_ph":6.205,"e5_ph":6.055,"syrup_ph":6.3233},{"d":"2026-01-27","e1_brix":26.41,"e2_brix":30.75,"e3_brix":39.305,"e4_brix":50.555,"e5_brix":67.11,"e1_ph":6.695,"e2_ph":7.175,"e3_ph":6.47,"e4_ph":6.365,"e5_ph":6.35,"syrup_ph":6.2333},{"d":"2026-01-28","e1_brix":25.42,"e2_brix":33.21,"e3_brix":45.62,"e4_brix":54.217,"e5_brix":65.659,"e1_ph":6.84,"e2_ph":6.615,"e3_ph":6.525,"e4_ph":6.44,"e5_ph":6.34,"syrup_ph":6.5067},{"d":"2026-01-29","e1_brix":25.895,"e2_brix":32.75,"e3_brix":41.475,"e4_brix":52.515,"e5_brix":61.559,"e1_ph":6.585,"e2_ph":6.475,"e3_ph":6.37,"e4_ph":6.305,"e5_ph":6.24,"syrup_ph":6.2467},{"d":"2026-01-30","e1_brix":29.42,"e2_brix":38.27,"e3_brix":44.515,"e4_brix":53.015,"e5_brix":62.275,"e1_ph":6.53,"e2_ph":6.33,"e3_ph":6.3,"e4_ph":6.285,"e5_ph":6.165,"syrup_ph":6.72},{"d":"2026-01-31","e1_brix":29.55,"e2_brix":38.4,"e3_brix":45.455,"e4_brix":54.6,"e5_brix":63.9,"e1_ph":6.4,"e2_ph":6.325,"e3_ph":6.24,"e4_ph":6.2,"e5_ph":6.16,"syrup_ph":6.5367},{"d":"2026-02-01","e1_brix":28.46,"e2_brix":37.56,"e3_brix":44.61,"e4_brix":54.159,"e5_brix":62.51,"e1_ph":6.275,"e2_ph":6.175,"e3_ph":6.165,"e4_ph":6.19,"e5_ph":6.285,"syrup_ph":6.2833},{"d":"2026-02-02","e1_brix":33.76,"e2_brix":45.458,"e3_brix":51.41,"e4_brix":59.11,"e5_brix":69.208,"e1_ph":6.755,"e2_ph":6.57,"e3_ph":6.41,"e4_ph":6.275,"e5_ph":6.19,"syrup_ph":6.1633},{"d":"2026-02-05","e1_brix":29.2,"e2_brix":42.0,"e3_brix":47.1,"e4_brix":49.8,"e5_brix":63.45,"e1_ph":7.09,"e2_ph":7.78,"e3_ph":7.56,"e4_ph":7.4,"e5_ph":7.385,"syrup_ph":7.115},{"d":"2026-02-06","e1_brix":29.715,"e2_brix":38.07,"e3_brix":44.82,"e4_brix":53.62,"e5_brix":63.22,"e1_ph":6.695,"e2_ph":6.62,"e3_ph":6.53,"e4_ph":6.43,"e5_ph":6.295,"syrup_ph":6.3},{"d":"2026-02-07","e1_brix":30.665,"e2_brix":39.722,"e3_brix":48.77,"e4_brix":60.723,"e5_brix":70.756,"e1_ph":6.385,"e2_ph":6.3,"e3_ph":6.195,"e4_ph":6.07,"e5_ph":5.91,"syrup_ph":6.1533},{"d":"2026-02-08","e1_brix":30.8,"e2_brix":37.855,"e3_brix":45.355,"e4_brix":55.01,"e5_brix":67.165,"e1_ph":6.425,"e2_ph":6.165,"e3_ph":6.135,"e4_ph":6.07,"e5_ph":6.025,"syrup_ph":6.4733},{"d":"2026-02-09","e1_brix":28.909,"e2_brix":39.115,"e3_brix":52.318,"e4_brix":61.47,"e5_brix":69.615,"e1_ph":6.815,"e2_ph":6.65,"e3_ph":6.49,"e4_ph":6.345,"e5_ph":6.3,"syrup_ph":6.28},{"d":"2026-02-10","e1_brix":30.715,"e2_brix":37.765,"e3_brix":48.745,"e4_brix":57.25,"e5_brix":61.085,"e1_ph":6.915,"e2_ph":6.6,"e3_ph":6.54,"e4_ph":6.405,"e5_ph":6.25,"syrup_ph":6.3733},{"d":"2026-02-11","e1_brix":29.585,"e2_brix":37.435,"e3_brix":48.15,"e4_brix":55.98,"e5_brix":65.28,"e1_ph":6.75,"e2_ph":6.55,"e3_ph":6.43,"e4_ph":6.295,"e5_ph":6.095,"syrup_ph":6.15},{"d":"2026-02-12","e1_brix":27.621,"e2_brix":34.58,"e3_brix":46.387,"e4_brix":63.872,"e5_brix":67.515,"e1_ph":6.65,"e2_ph":6.47,"e3_ph":6.435,"e4_ph":6.355,"e5_ph":6.235,"syrup_ph":6.3567},{"d":"2026-02-13","e1_brix":26.55,"e2_brix":34.85,"e3_brix":44.1,"e4_brix":54.3,"e5_brix":65.75,"e1_ph":6.735,"e2_ph":6.69,"e3_ph":6.63,"e4_ph":6.57,"e5_ph":6.495,"syrup_ph":6.21},{"d":"2026-02-14","e1_brix":28.813,"e2_brix":34.915,"e3_brix":45.685,"e4_brix":54.263,"e5_brix":64.12,"e1_ph":6.67,"e2_ph":6.34,"e3_ph":6.44,"e4_ph":6.35,"e5_ph":6.21,"syrup_ph":6.3033},{"d":"2026-02-15","e1_brix":28.55,"e2_brix":35.15,"e3_brix":45.1,"e4_brix":53.9,"e5_brix":68.15,"e1_ph":6.555,"e2_ph":6.29,"e3_ph":6.32,"e4_ph":6.275,"e5_ph":6.15,"syrup_ph":6.1767},{"d":"2026-02-16","e1_brix":29.105,"e2_brix":34.0,"e3_brix":41.45,"e4_brix":47.6,"e5_brix":53.454,"e1_ph":6.54,"e2_ph":6.46,"e3_ph":6.395,"e4_ph":6.325,"e5_ph":6.3,"syrup_ph":6.2133},{"d":"2026-02-17","e1_brix":28.965,"e2_brix":31.115,"e3_brix":38.415,"e4_brix":49.065,"e5_brix":59.75,"e1_ph":6.32,"e2_ph":6.425,"e3_ph":6.27,"e4_ph":6.23,"e5_ph":6.04,"syrup_ph":6.2967},{"d":"2026-02-18","e1_brix":28.02,"e2_brix":35.32,"e3_brix":43.815,"e4_brix":49.664,"e5_brix":66.904,"e1_ph":6.685,"e2_ph":6.64,"e3_ph":6.605,"e4_ph":6.56,"e5_ph":6.325,"syrup_ph":6.3167},{"d":"2026-02-19","e1_brix":25.565,"e2_brix":31.57,"e3_brix":40.675,"e4_brix":50.365,"e5_brix":63.805,"e1_ph":6.635,"e2_ph":6.445,"e3_ph":6.425,"e4_ph":6.495,"e5_ph":6.355,"syrup_ph":6.4733},{"d":"2026-02-20","e1_brix":26.95,"e2_brix":34.6,"e3_brix":45.6,"e4_brix":56.5,"e5_brix":67.9,"e1_ph":7.05,"e2_ph":6.86,"e3_ph":6.725,"e4_ph":6.69,"e5_ph":6.64,"syrup_ph":6.5267},{"d":"2026-02-21","e1_brix":32.05,"e2_brix":40.9,"e3_brix":53.35,"e4_brix":60.75,"e5_brix":69.55,"e1_ph":6.62,"e2_ph":6.495,"e3_ph":6.365,"e4_ph":6.27,"e5_ph":6.27,"syrup_ph":6.2433},{"d":"2026-02-22","e1_brix":26.0,"e2_brix":31.45,"e3_brix":38.9,"e4_brix":44.9,"e5_brix":55.25,"e1_ph":6.835,"e2_ph":6.72,"e3_ph":6.625,"e4_ph":6.595,"e5_ph":6.49,"syrup_ph":6.38},{"d":"2026-02-24","e1_brix":22.25,"e2_brix":28.3,"e3_brix":36.1,"e4_brix":37.25,"e5_brix":50.04,"e1_ph":7.33,"e2_ph":7.0,"e3_ph":7.8,"e4_ph":7.28,"e5_ph":6.66,"syrup_ph":6.8367},{"d":"2026-02-25","e1_brix":25.977,"e2_brix":31.975,"e3_brix":41.175,"e4_brix":49.977,"e5_brix":61.825,"e1_ph":7.24,"e2_ph":7.01,"e3_ph":6.955,"e4_ph":6.825,"e5_ph":6.455,"syrup_ph":6.5433},{"d":"2026-02-26","e1_brix":26.06,"e2_brix":27.904,"e3_brix":32.96,"e4_brix":41.559,"e5_brix":58.26,"e1_ph":6.39,"e2_ph":6.36,"e3_ph":6.285,"e4_ph":6.38,"e5_ph":6.16,"syrup_ph":6.21},{"d":"2026-02-27","e1_brix":26.92,"e2_brix":35.015,"e3_brix":44.218,"e4_brix":53.668,"e5_brix":67.77,"e1_ph":6.49,"e2_ph":6.4,"e3_ph":6.295,"e4_ph":6.275,"e5_ph":6.185,"syrup_ph":6.165},{"d":"2026-02-28","e1_brix":31.766,"e2_brix":38.454,"e3_brix":42.775,"e4_brix":52.685,"e5_brix":70.029,"e1_ph":6.495,"e2_ph":6.405,"e3_ph":6.37,"e4_ph":6.29,"e5_ph":6.25,"syrup_ph":6.2433},{"d":"2026-03-01","e1_brix":28.15,"e2_brix":34.5,"e3_brix":43.155,"e4_brix":52.659,"e5_brix":65.959,"e1_ph":7.02,"e2_ph":6.915,"e3_ph":6.75,"e4_ph":6.675,"e5_ph":6.525,"syrup_ph":6.4067},{"d":"2026-03-02","e1_brix":29.4,"e2_brix":36.955,"e3_brix":47.259,"e4_brix":56.71,"e5_brix":68.35,"e1_ph":6.635,"e2_ph":6.46,"e3_ph":6.365,"e4_ph":6.32,"e5_ph":6.255,"syrup_ph":6.4367},{"d":"2026-03-03","e1_brix":27.5,"e2_brix":34.3,"e3_brix":44.95,"e4_brix":55.4,"e5_brix":65.455,"e1_ph":6.695,"e2_ph":6.57,"e3_ph":6.535,"e4_ph":6.495,"e5_ph":6.43,"syrup_ph":6.5367},{"d":"2026-03-04","e1_brix":28.47,"e2_brix":36.525,"e3_brix":43.92,"e4_brix":51.477,"e5_brix":62.33,"e1_ph":7.56,"e2_ph":7.405,"e3_ph":7.215,"e4_ph":7.035,"e5_ph":6.93,"syrup_ph":6.7133},{"d":"2026-03-05","e1_brix":28.59,"e2_brix":35.485,"e3_brix":41.68,"e4_brix":51.73,"e5_brix":69.959,"e1_ph":6.77,"e2_ph":6.61,"e3_ph":6.605,"e4_ph":6.555,"e5_ph":6.505,"syrup_ph":6.5267},{"d":"2026-03-06","e1_brix":26.1,"e2_brix":31.055,"e3_brix":38.505,"e4_brix":48.655,"e5_brix":60.555,"e1_ph":6.73,"e2_ph":6.695,"e3_ph":6.64,"e4_ph":6.66,"e5_ph":6.49,"syrup_ph":6.53},{"d":"2026-03-07","e1_brix":29.15,"e2_brix":39.4,"e3_brix":50.45,"e4_brix":59.21,"e5_brix":62.55,"e1_ph":6.91,"e2_ph":6.82,"e3_ph":6.75,"e4_ph":6.675,"e5_ph":6.525,"syrup_ph":6.5933},{"d":"2026-03-08","e1_brix":29.959,"e2_brix":35.515,"e3_brix":45.263,"e4_brix":54.61,"e5_brix":64.215,"e1_ph":6.885,"e2_ph":6.82,"e3_ph":6.705,"e4_ph":6.655,"e5_ph":6.5,"syrup_ph":6.6},{"d":"2026-03-09","e1_brix":28.55,"e2_brix":39.0,"e3_brix":43.4,"e4_brix":47.05,"e5_brix":64.7,"e1_ph":6.78,"e2_ph":6.73,"e3_ph":6.7,"e4_ph":6.635,"e5_ph":6.48,"syrup_ph":6.58},{"d":"2026-03-10","e1_brix":27.125,"e2_brix":34.18,"e3_brix":39.135,"e4_brix":47.93,"e5_brix":63.62,"e1_ph":6.72,"e2_ph":6.685,"e3_ph":6.625,"e4_ph":6.585,"e5_ph":6.425,"syrup_ph":6.72},{"d":"2026-03-11","e1_brix":26.9,"e2_brix":33.55,"e3_brix":39.5,"e4_brix":47.15,"e5_brix":60.65,"e1_ph":6.845,"e2_ph":6.8,"e3_ph":6.76,"e4_ph":6.73,"e5_ph":6.635,"syrup_ph":6.51},{"d":"2026-03-12","e1_brix":25.121,"e2_brix":33.78,"e3_brix":41.815,"e4_brix":51.126,"e5_brix":58.76,"e1_ph":6.685,"e2_ph":6.665,"e3_ph":6.61,"e4_ph":6.57,"e5_ph":6.51,"syrup_ph":6.49},{"d":"2026-03-13","e1_brix":27.265,"e2_brix":34.315,"e3_brix":42.21,"e4_brix":49.508,"e5_brix":60.604,"e1_ph":6.775,"e2_ph":6.66,"e3_ph":6.62,"e4_ph":6.59,"e5_ph":6.325,"syrup_ph":6.61},{"d":"2026-03-14","e1_brix":27.305,"e2_brix":35.458,"e3_brix":44.31,"e4_brix":52.455,"e5_brix":62.95,"e1_ph":7.01,"e2_ph":6.82,"e3_ph":6.685,"e4_ph":6.575,"e5_ph":6.39,"syrup_ph":6.4467},{"d":"2026-03-15","e1_brix":27.35,"e2_brix":35.15,"e3_brix":45.155,"e4_brix":54.31,"e5_brix":66.95,"e1_ph":6.81,"e2_ph":6.75,"e3_ph":6.63,"e4_ph":6.54,"e5_ph":6.485,"syrup_ph":6.47},{"d":"2026-03-16","e1_brix":26.25,"e2_brix":32.55,"e3_brix":41.45,"e4_brix":51.0,"e5_brix":63.85,"e1_ph":6.545,"e2_ph":6.49,"e3_ph":6.475,"e4_ph":6.455,"e5_ph":6.44,"syrup_ph":6.38},{"d":"2026-03-17","e1_brix":26.6,"e2_brix":33.6,"e3_brix":44.74,"e4_brix":55.4,"e5_brix":61.6,"e1_ph":6.87,"e2_ph":6.59,"e3_ph":6.515,"e4_ph":6.43,"e5_ph":6.36,"syrup_ph":6.5733},{"d":"2026-03-18","e1_brix":25.915,"e2_brix":32.56,"e3_brix":41.264,"e4_brix":52.909,"e5_brix":62.315,"e1_ph":6.605,"e2_ph":6.505,"e3_ph":6.46,"e4_ph":6.44,"e5_ph":6.32,"syrup_ph":6.5767},{"d":"2026-03-19","e1_brix":26.6,"e2_brix":33.05,"e3_brix":40.05,"e4_brix":47.85,"e5_brix":55.35,"e1_ph":6.08,"e2_ph":6.53,"e3_ph":5.995,"e4_ph":6.545,"e5_ph":6.47,"syrup_ph":6.3633},{"d":"2026-03-20","e1_brix":29.15,"e2_brix":35.45,"e3_brix":40.95,"e4_brix":49.1,"e5_brix":63.2,"e1_ph":7.095,"e2_ph":7.18,"e3_ph":6.8,"e4_ph":6.74,"e5_ph":6.415,"syrup_ph":6.44},{"d":"2026-03-21","e1_brix":16.91,"e2_brix":21.2,"e3_brix":33.065,"e4_brix":44.71,"e5_brix":54.71,"e1_ph":8.2,"e2_ph":6.95,"e3_ph":6.575,"e4_ph":6.41,"e5_ph":6.39,"syrup_ph":6.68},{"d":"2026-03-22","e1_brix":30.822,"e2_brix":38.372,"e3_brix":42.42,"e4_brix":49.522,"e5_brix":65.275,"e1_ph":6.84,"e2_ph":6.66,"e3_ph":6.58,"e4_ph":6.48,"e5_ph":6.405,"syrup_ph":6.565},{"d":"2026-03-23","e1_brix":26.985,"e2_brix":36.72,"e3_brix":49.04,"e4_brix":55.67,"e5_brix":61.435,"e1_ph":7.35,"e2_ph":7.105,"e3_ph":6.74,"e4_ph":6.505,"e5_ph":6.415,"syrup_ph":6.62},{"d":"2026-03-24","e1_brix":31.515,"e2_brix":40.64,"e3_brix":44.775,"e4_brix":52.18,"e5_brix":63.04,"e1_ph":6.39,"e2_ph":6.3,"e3_ph":6.245,"e4_ph":6.225,"e5_ph":6.18,"syrup_ph":6.61},{"d":"2026-03-25","e1_brix":27.52,"e2_brix":34.72,"e3_brix":37.825,"e4_brix":55.022,"e5_brix":58.82,"e1_ph":6.54,"e2_ph":6.44,"e3_ph":6.335,"e4_ph":6.295,"e5_ph":6.235,"syrup_ph":6.3233},{"d":"2026-03-26","e1_brix":25.781,"e2_brix":31.918,"e3_brix":39.314,"e4_brix":49.768,"e5_brix":57.07,"e1_ph":7.025,"e2_ph":6.76,"e3_ph":6.485,"e4_ph":6.38,"e5_ph":6.345,"syrup_ph":6.37},{"d":"2026-03-27","e1_brix":23.335,"e2_brix":29.78,"e3_brix":35.62,"e4_brix":42.565,"e5_brix":48.965,"e1_ph":6.77,"e2_ph":6.67,"e3_ph":6.475,"e4_ph":6.355,"e5_ph":6.295,"syrup_ph":6.5},{"d":"2026-03-28","e1_brix":19.035,"e2_brix":25.385,"e3_brix":31.045,"e4_brix":37.94,"e5_brix":53.24,"e1_ph":6.93,"e2_ph":6.545,"e3_ph":6.275,"e4_ph":6.2,"e5_ph":6.145,"syrup_ph":6.32},{"d":"2026-03-29","e1_brix":25.95,"e2_brix":32.354,"e3_brix":36.205,"e4_brix":43.104,"e5_brix":69.005,"e1_ph":6.805,"e2_ph":6.62,"e3_ph":6.455,"e4_ph":6.33,"e5_ph":6.265,"syrup_ph":6.37},{"d":"2026-03-30","e1_brix":25.063,"e2_brix":32.115,"e3_brix":40.62,"e4_brix":47.015,"e5_brix":50.96,"e1_ph":6.385,"e2_ph":6.26,"e3_ph":6.17,"e4_ph":6.265,"e5_ph":6.13,"syrup_ph":6.09},{"d":"2026-03-31","e1_brix":25.4,"e2_brix":33.75,"e3_brix":40.8,"e4_brix":49.35,"e5_brix":65.85,"e1_ph":6.5,"e2_ph":6.26,"e3_ph":6.14,"e4_ph":6.1,"e5_ph":6.22,"syrup_ph":6.035},{"d":"2026-04-01","e1_brix":24.9,"e2_brix":34.9,"e3_brix":39.25,"e4_brix":47.25,"e5_brix":59.6,"e1_ph":5.95,"e2_ph":5.84,"e3_ph":5.905,"e4_ph":5.84,"e5_ph":5.795,"syrup_ph":6.14},{"d":"2026-04-02","e1_brix":28.155,"e2_brix":33.85,"e3_brix":39.505,"e4_brix":43.205,"e5_brix":49.854,"e1_ph":6.225,"e2_ph":6.08,"e3_ph":5.995,"e4_ph":6.015,"e5_ph":6.06,"syrup_ph":5.98}];
+
+let MILL = [...MILL_ALL];
+let CLAR = [...CLAR_ALL];
+let EVAP = [...EVAP_ALL];
+
+/* Theme */
+function toggleTheme(){
+  const h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',n);localStorage.setItem('smt',n);updateAllCharts();
+}
+(()=>{const s=localStorage.getItem('smt');if(s)document.documentElement.setAttribute('data-theme',s)})();
+
+/* Tabs */
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab_'+id).classList.add('active');
+  document.getElementById('panel_'+id).classList.add('active');
+  localStorage.setItem('smtab',id);
+  setTimeout(()=>allCharts.forEach(c=>c.chart.resize()),50);
+}
+(()=>{const t=localStorage.getItem('smtab')||location.hash.replace('#','');if(t&&document.getElementById('tab_'+t))switchTab(t)})();
+
+/* Date Range Filter */
+function filterData(data, from, to){
+  return data.filter(r=>{
+    if(from && r.d < from) return false;
+    if(to && r.d > to) return false;
+    return true;
+  });
+}
+
+function applyDateRange(){
+  const from = document.getElementById('dr_from').value;
+  const to = document.getElementById('dr_to').value;
+  
+  MILL = filterData(MILL_ALL, from, to);
+  CLAR = filterData(CLAR_ALL, from, to);
+  EVAP = filterData(EVAP_ALL, from, to);
+  
+  // Show info
+  const info = document.getElementById('dr_info');
+  if(from || to){
+    const f = from || MILL_ALL[0].d;
+    const t = to || MILL_ALL[MILL_ALL.length-1].d;
+    info.textContent = `แสดง: Mill ${MILL.length} วัน, Clar ${CLAR.length} วัน, Evap ${EVAP.length} วัน`;
+  } else {
+    info.textContent = '';
+  }
+  
+  rebuildAll();
+}
+
+function resetDateRange(){
+  document.getElementById('dr_from').value = '';
+  document.getElementById('dr_to').value = '';
+  MILL = [...MILL_ALL];
+  CLAR = [...CLAR_ALL];
+  EVAP = [...EVAP_ALL];
+  document.getElementById('dr_info').textContent = '';
+  rebuildAll();
+}
+
+/* Save Chart as PNG */
+function saveChart(id){
+  const entry=allCharts.find(c=>c.id===id);
+  if(!entry)return;
+  const canvas=entry.chart.canvas;
+  const link=document.createElement('a');
+  link.download=id+'_chart.png';
+  link.href=canvas.toDataURL('image/png',1.0);
+  link.click();
+}
+
+/* KPI Builder */
+function buildKPIs(container,data,defs){
+  const el=document.getElementById(container);
+  el.innerHTML='';
+  defs.forEach(kd=>{
+    const vals=data.map(r=>r[kd.k]).filter(v=>v!=null);
+    if(!vals.length)return;
+    const avg=+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);
+    const mn=+Math.min(...vals).toFixed(2),mx=+Math.max(...vals).toFixed(2),last=+vals[vals.length-1].toFixed(2);
+    let cls='info';
+    if(kd.tgt!==undefined){
+      if(kd.cmp==='>='||kd.cmp==='>')cls=avg>=kd.tgt?'ok':'warn';
+      else if(kd.cmp==='<')cls=avg<kd.tgt?'ok':'warn';
+      else if(kd.cmp==='<=')cls=avg<=kd.tgt?'ok':'warn';
+    }
+    const d=document.createElement('div');d.className='kpi '+cls;
+    d.innerHTML=`<div class="kl">${kd.em} ${kd.l}</div><div class="kv">${avg}</div><div class="kd">Min ${mn} &middot; Max ${mx} &middot; Last ${last}</div>${kd.tgt!==undefined?`<div class="kt">Target ${kd.cmp} ${kd.tgt}</div>`:''}`; 
+    el.appendChild(d);
+  });
+}
+
+const MILL_KPI_DEFS=[
+  {k:'pi',l:'Preparation Index',tgt:91.5,cmp:'>=',em:'&#127919;'},
+  {k:'ext',l:'Extraction %',tgt:96.25,cmp:'>=',em:'&#9889;'},
+  {k:'ppb',l:'Pol % Bagasse',tgt:1.93,cmp:'<',em:'&#127806;'},
+  {k:'mpb',l:'Moisture % Bag.',tgt:50,cmp:'<=',em:'&#128167;'},
+  {k:'pd',l:'Purity Drop',tgt:1.2,cmp:'<',em:'&#128201;'},
+  {k:'ml',l:'Milling Loss',em:'&#128202;'},
+  {k:'ipf',l:'Imbibition % Fiber',em:'&#128260;'},
+  {k:'tch',l:'TC / Hour',em:'&#127981;'},
+];
+const CLAR_KPI_DEFS=[
+  {k:'cj_ph',l:'CJ pH',em:'&#129514;'},
+  {k:'cj_pty',l:'CJ Purity %',em:'&#10024;'},
+  {k:'cj_brix',l:'CJ Brix',em:'&#128202;'},
+  {k:'cj_turb',l:'CJ Turbidity',em:'&#128167;'},
+  {k:'cj_color',l:'CJ Color (IU)',em:'&#127912;'},
+  {k:'lime_ph',l:'Limed Juice pH',em:'&#9879;'},
+  {k:'mf_brix',l:'Mud Filt. Brix',em:'&#127981;'},
+  {k:'mj_ph',l:'Mixed Juice pH',em:'&#129527;'},
+];
+const EVAP_KPI_DEFS=[
+  {k:'e1_brix',l:'Evap #1 Brix',em:'1&#65039;&#8419;'},
+  {k:'e2_brix',l:'Evap #2 Brix',em:'2&#65039;&#8419;'},
+  {k:'e3_brix',l:'Evap #3 Brix',em:'3&#65039;&#8419;'},
+  {k:'e4_brix',l:'Evap #4 Brix',em:'4&#65039;&#8419;'},
+  {k:'e5_brix',l:'Evap #5 (Syrup)',em:'5&#65039;&#8419;'},
+  {k:'syrup_ph',l:'Raw Syrup pH',em:'&#9879;'},
+];
+
+function buildAllKPIs(){
+  buildKPIs('kpi_mill',MILL,MILL_KPI_DEFS);
+  buildKPIs('kpi_clar',CLAR,CLAR_KPI_DEFS);
+  buildKPIs('kpi_evap',EVAP,EVAP_KPI_DEFS);
+}
+buildAllKPIs();
+
+/* Chart Engine */
+let allCharts=[];
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+
+function mk(id,data,key,col,target){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  const labels=data.map(r=>r.d);
+  const values=data.map(r=>r[key]);
+  const color=css(col);
+  const plugins=[];
+  if(target!=null){
+    plugins.push({id:'tl_'+id,afterDraw(ch){
+      const y=ch.scales.y.getPixelForValue(target);
+      if(y<ch.chartArea.top||y>ch.chartArea.bottom)return;
+      const c=ch.ctx;c.save();c.setLineDash([6,4]);c.strokeStyle=css('--red');c.lineWidth=1.5;
+      c.beginPath();c.moveTo(ch.chartArea.left,y);c.lineTo(ch.chartArea.right,y);c.stroke();
+      c.fillStyle=css('--red');c.font='600 10px Inter';
+      c.fillText('Target: '+target,ch.chartArea.right-72,y-5);c.restore();
+    }});
+  }
+  const ch=new Chart(ctx,{
+    type:'line',data:{labels,datasets:[{
+      data:values,borderColor:color,backgroundColor:color+'15',
+      borderWidth:1.6,fill:true,tension:0.35,
+      pointRadius:1.5,pointHoverRadius:5,pointBackgroundColor:color,pointBorderWidth:0
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:400,easing:'easeOutQuart'},
+      interaction:{mode:'index',intersect:false},
+      scales:{
+        x:{ticks:{maxTicksLimit:12,maxRotation:45,font:{size:10},color:css('--t3')},grid:{display:false},border:{display:false}},
+        y:{ticks:{font:{size:10},color:css('--t3'),padding:6},grid:{color:css('--chart-grid')},border:{display:false}}
+      },
+      plugins:{legend:{display:false},tooltip:{
+        backgroundColor:css('--bg')+'f0',titleColor:css('--t1'),bodyColor:css('--t2'),
+        borderColor:css('--brd'),borderWidth:1,padding:10,cornerRadius:8,
+        titleFont:{weight:'700',size:11},bodyFont:{size:10},
+        callbacks:{label:i=>key.toUpperCase()+': '+(i.raw!=null?i.raw:'N/A')}
+      }}
+    },plugins
+  });
+  allCharts.push({chart:ch,col,target,id,dataKey:key,src:id.startsWith('m_')?'mill':id.startsWith('c_')?'clar':'evap'});
+}
+
+function updateAllCharts(){
+  allCharts.forEach(({chart:ch,col})=>{
+    const color=css(col);
+    ch.data.datasets[0].borderColor=color;
+    ch.data.datasets[0].backgroundColor=color+'15';
+    ch.data.datasets[0].pointBackgroundColor=color;
+    ch.options.scales.x.ticks.color=css('--t3');
+    ch.options.scales.y.ticks.color=css('--t3');
+    ch.options.scales.y.grid.color=css('--chart-grid');
+    ch.options.plugins.tooltip.backgroundColor=css('--bg')+'f0';
+    ch.options.plugins.tooltip.titleColor=css('--t1');
+    ch.options.plugins.tooltip.bodyColor=css('--t2');
+    ch.update('none');
+  });
+}
+
+function updateChartData(){
+  allCharts.forEach(entry=>{
+    const data = entry.src==='mill'?MILL:entry.src==='clar'?CLAR:EVAP;
+    entry.chart.data.labels = data.map(r=>r.d);
+    entry.chart.data.datasets[0].data = data.map(r=>r[entry.dataKey]);
+    entry.chart.update();
+  });
+}
+
+function updateDayCounts(){
+  const m=MILL.length, c=CLAR.length, e=EVAP.length;
+  document.querySelectorAll('#cnt_mill_perf,#cnt_mill_bag,#cnt_mill_loss,#cnt_mill_cane').forEach(el=>el.textContent=m+' days');
+  document.querySelectorAll('#cnt_clar1,#cnt_clar2,#cnt_clar3,#cnt_clar4').forEach(el=>el.textContent=c+' days');
+  document.querySelectorAll('#cnt_evap1,#cnt_evap2').forEach(el=>el.textContent=e+' days');
+}
+
+function rebuildAll(){
+  buildAllKPIs();
+  updateChartData();
+  updateDayCounts();
+}
+
+/* Build All Charts */
+mk('m_pi',MILL,'pi','--blue',91.5);
+mk('m_ext',MILL,'ext','--green',96.25);
+mk('m_fme',MILL,'fme','--cyan',null);
+mk('m_tch',MILL,'tch','--pink',null);
+mk('m_ppb',MILL,'ppb','--red',1.93);
+mk('m_mpb',MILL,'mpb','--amber',50);
+mk('m_pd',MILL,'pd','--purple',1.2);
+mk('m_ml',MILL,'ml','--cyan',null);
+mk('m_ipf',MILL,'ipf','--amber',null);
+mk('m_ipc',MILL,'ipc','--green',null);
+mk('m_pol',MILL,'pol','--blue',null);
+mk('m_ccs',MILL,'ccs','--purple',null);
+mk('m_fib',MILL,'fib','--green',null);
+mk('m_mjpc',MILL,'mjpc','--pink',null);
+
+mk('c_cj_ph',CLAR,'cj_ph','--blue',null);
+mk('c_cj_pty',CLAR,'cj_pty','--green',null);
+mk('c_cj_brix',CLAR,'cj_brix','--purple',null);
+mk('c_cj_pol',CLAR,'cj_pol','--cyan',null);
+mk('c_cj_turb',CLAR,'cj_turb','--amber',null);
+mk('c_cj_color',CLAR,'cj_color','--pink',null);
+mk('c_cj_po4',CLAR,'cj_po4','--teal',null);
+mk('c_lime_ph',CLAR,'lime_ph','--green',null);
+mk('c_mj_ph',CLAR,'mj_ph','--blue',null);
+mk('c_mf_ph',CLAR,'mf_ph','--amber',null);
+mk('c_mf_brix',CLAR,'mf_brix','--red',null);
+mk('c_mf_pol',CLAR,'mf_pol','--purple',null);
+
+mk('e_e1_brix',EVAP,'e1_brix','--blue',null);
+mk('e_e2_brix',EVAP,'e2_brix','--green',null);
+mk('e_e3_brix',EVAP,'e3_brix','--purple',null);
+mk('e_e4_brix',EVAP,'e4_brix','--cyan',null);
+mk('e_e5_brix',EVAP,'e5_brix','--pink',null);
+mk('e_e1_ph',EVAP,'e1_ph','--blue',null);
+mk('e_e2_ph',EVAP,'e2_ph','--green',null);
+mk('e_e3_ph',EVAP,'e3_ph','--purple',null);
+mk('e_e4_ph',EVAP,'e4_ph','--cyan',null);
+mk('e_e5_ph',EVAP,'e5_ph','--pink',null);
+mk('e_syrup_ph',EVAP,'syrup_ph','--amber',null);
+
+/* Set date range inputs to data bounds */
+(()=>{
+  const all = [...MILL_ALL.map(r=>r.d),...CLAR_ALL.map(r=>r.d),...EVAP_ALL.map(r=>r.d)].sort();
+  if(all.length){
+    document.getElementById('dr_from').min = all[0];
+    document.getElementById('dr_from').max = all[all.length-1];
+    document.getElementById('dr_to').min = all[0];
+    document.getElementById('dr_to').max = all[all.length-1];
+  }
+})();
+</script>
+</body>
+</html>
